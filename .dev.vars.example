@@ -1,0 +1,11 @@
+# Bu dosyayı ".dev.vars" olarak kopyala ve gerçek değerleri gir.
+# .dev.vars ASLA commit edilmez (.gitignore'da tanımlı).
+# Production'da bu değerler Cloudflare Pages > Settings > Environment variables
+# altında "Encrypt" işaretli olarak tanımlanır.
+
+# Admin paneline giriş yapacak e-posta adresi
+ADMIN_EMAIL="admin@meisterkaffee.com"
+
+# Session cookie imzalama anahtarı (HMAC-SHA256).
+# Üretmek için: node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+SESSION_SECRET="buraya-üretilen-rastgele-anahtar"

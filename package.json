@@ -1,0 +1,16 @@
+{
+  "name": "meister-kaffee-roesterei",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MEISTER KAFFEE-RÖSTEREİ — B2B tek sayfa site + admin paneli (Cloudflare Pages + KV)",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler pages dev",
+    "deploy": "wrangler pages deploy",
+    "seed": "node scripts/seed-kv.mjs",
+    "kv:create": "wrangler kv namespace create CONTENT_KV && wrangler kv namespace create ADMIN_KV"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

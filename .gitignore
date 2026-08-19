@@ -1,0 +1,17 @@
+# Cloudflare / Wrangler
+.wrangler/
+.dev.vars
+
+# Bagimliliklar
+node_modules/
+
+# Isletim sistemi
+Thumbs.db
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Kaynak fotograf arsivi (27 MB, yayina cikmaz - optimize kopyalar public/images altinda)
+photos/

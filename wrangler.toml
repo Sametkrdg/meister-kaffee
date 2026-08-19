@@ -1,0 +1,29 @@
+name = "meister-kaffee-roesterei"
+compatibility_date = "2026-08-19"
+
+# Statik varlıklar (fontlar, görseller, robots.txt, assets/) buradan servis edilir.
+# Build adımı yoktur; public/ olduğu gibi yayınlanır.
+pages_build_output_dir = "public"
+
+# --------------------------------------------------------------------------
+# KV binding'leri
+#
+# id / preview_id değerleri namespace'ler oluşturulduktan sonra doldurulur:
+#   npx wrangler kv namespace create CONTENT_KV
+#   npx wrangler kv namespace create CONTENT_KV --preview
+#   npx wrangler kv namespace create ADMIN_KV
+#   npx wrangler kv namespace create ADMIN_KV --preview
+#
+# Aynı binding'ler ayrıca Cloudflare Pages panelinde
+# Settings > Bindings altında Production VE Preview için de tanımlanmalıdır.
+# --------------------------------------------------------------------------
+
+[[kv_namespaces]]
+binding = "CONTENT_KV"
+id = "BURAYA_CONTENT_KV_ID"
+preview_id = "BURAYA_CONTENT_KV_PREVIEW_ID"
+
+[[kv_namespaces]]
+binding = "ADMIN_KV"
+id = "BURAYA_ADMIN_KV_ID"
+preview_id = "BURAYA_ADMIN_KV_PREVIEW_ID"
