@@ -1,10 +1,8 @@
-pages_build_output_dir = "public"
 name = "meister-kaffee-roesterei"
 compatibility_date = "2026-08-19"
 
 # Statik varlıklar (fontlar, görseller, robots.txt, assets/) buradan servis edilir.
 # Build adımı yoktur; public/ olduğu gibi yayınlanır.
-pages_build_output_dir = "public"
 
 # --------------------------------------------------------------------------
 # KV binding'leri
