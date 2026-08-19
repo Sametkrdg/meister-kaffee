@@ -40,6 +40,7 @@ function kvPut(binding, key, value) {
     JSON.stringify(value),
     `--binding=${binding}`,
     isLocal ? '--local' : '--remote',
+    '--preview', 'false',
   ];
 
   try {

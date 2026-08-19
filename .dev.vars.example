@@ -4,7 +4,7 @@
 # altında "Encrypt" işaretli olarak tanımlanır.
 
 # Admin paneline giriş yapacak e-posta adresi
-ADMIN_EMAIL="admin@meisterkaffee.com"
+ADMIN_EMAIL="ornek@ornek.com"
 
 # Session cookie imzalama anahtarı (HMAC-SHA256).
 # Üretmek için: node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"

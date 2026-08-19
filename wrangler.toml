@@ -1,3 +1,4 @@
+pages_build_output_dir = "public"
 name = "meister-kaffee-roesterei"
 compatibility_date = "2026-08-19"
 
@@ -20,10 +21,10 @@ pages_build_output_dir = "public"
 
 [[kv_namespaces]]
 binding = "CONTENT_KV"
-id = "BURAYA_CONTENT_KV_ID"
-preview_id = "BURAYA_CONTENT_KV_PREVIEW_ID"
+id = "6802208eacb444918bc654b7db11fe16"
+preview_id = "7ff3692aae204b9fa5bb10349f9e1164"
 
 [[kv_namespaces]]
 binding = "ADMIN_KV"
-id = "BURAYA_ADMIN_KV_ID"
-preview_id = "BURAYA_ADMIN_KV_PREVIEW_ID"
+id = "8fd5513da728403a94e6f038f69fc367"
+preview_id = "d2715de61e394984a26cbc688e036a48"
