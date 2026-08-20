@@ -1,33 +1,58 @@
 import { escapeHtml, safeUrl } from '../lib/validate.js';
 
 /**
- * Hero — logo sunumu, değer önerisi başlığı ve birincil CTA.
- * Başlıkta satır sonu isteniyorsa içerikte "|" kullanılır; başka hiçbir
- * işaretleme kabul edilmez (içerik admin panelinden geldiği için).
+ * Hero — sola hizalı dev display tipografi, teknik köşe etiketleri ve
+ * scroll'a bağlı parallax/eğim efekti.
+ *
+ * Başlık biçimi (content:hero.headline):
+ *   satırlar "|" ile ayrılır, bronz vurgulanacak satır *yıldız* içine alınır.
+ *   Örn: "ZANAATKÂR|*TİTİZLİĞİYLE*|KAVRULMUŞ"
+ *
+ * Güvenlik: metin ÖNCE escapeHtml'den geçer, işaretleme SONRA uygulanır —
+ * bu yüzden içerikten HTML enjekte edilemez.
  */
-export function renderHero({ hero }) {
-  const eyebrow = escapeHtml(hero?.eyebrow || '');
-  const headline = escapeHtml(hero?.headline || '')
+function renderHeadline(raw) {
+  return escapeHtml(raw || '')
     .split('|')
-    .map((part) => part.trim())
+    .map((line) => line.trim())
     .filter(Boolean)
+    .map((line) => {
+      const accent = line.startsWith('*') && line.endsWith('*') && line.length > 2;
+      return accent
+        ? `<span class="hero__accent">${line.slice(1, -1)}</span>`
+        : line;
+    })
     .join('<br>');
+}
+
+export function renderHero({ hero, contact }) {
+  const eyebrow = escapeHtml(hero?.eyebrow || '');
+  const headline = renderHeadline(hero?.headline);
   const subheadline = escapeHtml(hero?.subheadline || '');
   const ctaLabel = escapeHtml(hero?.ctaLabel || 'BİZİMLE İLETİŞİME GEÇ');
   const ctaHref = safeUrl(hero?.ctaHref) || '#iletisim';
-  const logoUrl = safeUrl(hero?.logoUrl) || '/images/logomark.png';
+
+  const coordinates = escapeHtml(contact?.coordinates || '');
+  const address = escapeHtml(contact?.address || '');
+
+  const marker = [coordinates, address.toLocaleUpperCase('tr-TR')]
+    .filter(Boolean)
+    .join('<br>');
 
   return `
   <section class="hero" id="top">
-    <img class="hero__mark reveal" src="${logoUrl}" alt="Meister Kaffee-Rösterei"
-         width="512" height="512" fetchpriority="high">
+    <p class="hero__marker hero__marker--left">SEC/00 — HERO</p>
+    ${marker ? `<p class="hero__marker hero__marker--right">${marker}</p>` : ''}
 
-    ${eyebrow ? `<p class="hero__eyebrow reveal reveal--1">${eyebrow}</p>` : ''}
+    ${eyebrow ? `<p class="hero__eyebrow"><span class="dot" aria-hidden="true"></span>${eyebrow}</p>` : ''}
 
-    <h1 class="hero__title reveal reveal--2">${headline}</h1>
+    <h1 class="hero__title">${headline}</h1>
 
-    ${subheadline ? `<p class="hero__lead reveal reveal--3">${subheadline}</p>` : ''}
+    <div class="hero__foot">
+      ${subheadline ? `<p class="hero__lead">${subheadline}</p>` : ''}
+      <a class="btn btn--hero" href="${ctaHref}">${ctaLabel} →</a>
+    </div>
 
-    <a class="btn btn--primary reveal reveal--4" href="${ctaHref}">${ctaLabel}</a>
+    <p class="hero__scroll">SCROLL</p>
   </section>`;
 }

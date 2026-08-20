@@ -32,9 +32,9 @@ export const SEO_SECTIONS = ['home', 'why-us', 'services', 'contact'];
 
 export const DEFAULTS = {
   [KEYS.hero]: {
-    logoUrl: '/images/logomark.png',
     eyebrow: 'KURUMSAL KAHVE ORTAĞINIZ',
-    headline: 'Zanaatkâr Titizliğiyle Kavrulmuş, İşletmeniz İçin',
+    // Satırlar "|" ile ayrılır; *yıldız* içindeki satır bronz vurgulanır.
+    headline: 'ZANAATKÂR|*TİTİZLİĞİYLE*|KAVRULMUŞ',
     subheadline:
       'Oteller, kafeler ve ofisler için özel kavrulan, taze paketlenen ve titizlikle standartlaştırılan premium kahve çekirdekleri.',
     ctaLabel: 'BİZİMLE İLETİŞİME GEÇ',
@@ -115,9 +115,11 @@ export const DEFAULTS = {
   ],
 
   [KEYS.contact]: {
-    email: 'info@meisterkaffee.com',
-    phone: '+90 212 000 00 00',
-    address: 'İstanbul, Türkiye',
+    email: 'info@meisterkaffee.com.tr',
+    phone: '+90 537 737 82 20',
+    address: 'Yalova, Türkiye',
+    // Hero'nun sağ üst teknik etiketinde gösterilir; boşsa etiket gizlenir.
+    coordinates: '40.6550° N, 29.2769° E',
     marketplaceLinks: {
       trendyol: '',
       amazon: '',

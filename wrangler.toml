@@ -3,6 +3,11 @@ compatibility_date = "2026-08-19"
 
 # Statik varlıklar (fontlar, görseller, robots.txt, assets/) buradan servis edilir.
 # Build adımı yoktur; public/ olduğu gibi yayınlanır.
+#
+# DİKKAT: Bu satır Pages projesinin kimliğidir. Silinirse wrangler dosyanın
+# TAMAMINI yok sayar — `name` ve KV binding'leri dahil. O durumda deploy
+# "Missing Pages project name" hatası verir.
+pages_build_output_dir = "public"
 
 # --------------------------------------------------------------------------
 # KV binding'leri

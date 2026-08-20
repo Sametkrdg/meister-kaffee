@@ -113,8 +113,8 @@ export function validateContactSubmission(input) {
 export function validateHero(input) {
   const d = input && typeof input === 'object' ? input : {};
   return {
-    logoUrl: safeUrlOrEmpty(d.logoUrl),
     eyebrow: cleanText(d.eyebrow, 80),
+    // "|" satır ayracı, *yıldız* bronz vurgu işaretidir (bkz. templates/hero.js).
     headline: cleanText(d.headline, 200),
     subheadline: cleanText(d.subheadline, 400),
     ctaLabel: cleanText(d.ctaLabel, 60),
@@ -169,6 +169,7 @@ export function validateContactInfo(input) {
     email: isEmail(d.email) ? cleanText(d.email, 254).toLowerCase() : '',
     phone: cleanText(d.phone, 40),
     address: cleanText(d.address, 200),
+    coordinates: cleanText(d.coordinates, 60),
     marketplaceLinks: {
       trendyol: safeUrlOrEmpty(ml.trendyol),
       amazon: safeUrlOrEmpty(ml.amazon),

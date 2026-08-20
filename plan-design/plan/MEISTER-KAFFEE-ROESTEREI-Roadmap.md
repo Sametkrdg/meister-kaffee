@@ -97,10 +97,10 @@ meister-kaffee-roesterei/
 
 | Key | Shape |
 |---|---|
-| `content:hero` | `{ logoUrl, headline, subheadline, ctaLabel, ctaHref }` |
+| `content:hero` | `{ eyebrow, headline, subheadline, ctaLabel, ctaHref }` — `headline` satırları `\|` ile ayrılır, `*yıldız*` içindeki satır bronz vurgulanır (tasarım v2). `logoUrl` v2'de kaldırıldı: logomark artık nav'da sabittir. |
 | `content:why-us` | `[ { icon, title, description } ]` |
 | `content:products` | `[ { id, name, category, description, imageUrl, audience[], order } ]` |
-| `content:contact` | `{ email, phone, address, marketplaceLinks: { trendyol, amazon }, socialLinks: {...} }` |
+| `content:contact` | `{ email, phone, address, coordinates, marketplaceLinks: { trendyol, amazon }, socialLinks: {...} }` — `coordinates` hero'nun sağ üst teknik etiketinde gösterilir (tasarım v2), boşsa etiket gizlenir. |
 | `content:submissions` | append-only list of contact-form leads (zero-budget substitute for a paid email/CRM relay) |
 | `content:meta` | `{ updatedAt, updatedBy }` — bumped on every admin write, used to drive `sitemap.xml` `lastmod` and cache invalidation |
 

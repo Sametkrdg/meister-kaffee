@@ -22,15 +22,27 @@ Bu kararlardan biri değiştirilecekse (örn. bir framework eklemek, ücretli bi
 
 | Token | Değer | Kullanım |
 |---|---|---|
-| `--bg-primary` | `#181513` | Ana arkaplan (anthracite) |
-| `--bg-secondary` | `#1D1916` | İkincil panel/kart arkaplanı |
+| `--bg-primary` | `#161311` | Ana arkaplan (anthracite) |
+| `--bg-secondary` | `#1B1815` | İkincil panel/kart arkaplanı |
 | `--text-primary` | `#F3EEE8` | Ana metin (off-white) |
 | `--accent-bronze` | `#C7A47A` | Bronz/metalik vurgu (CTA, ikonlar, çizgiler) |
 | `--neutral-1..3` | `#D8D1C8`, `#948B81`, `#8A8078` | Yardımcı metin/border tonları |
-| Display font | `Fraunces` | Başlıklar |
-| Body font | `Inter` | Gövde metni, form, UI |
+| `--text-faint` | `#6E655D` | Teknik etiketler (SEC/00, koordinat, footer) |
+| `--line-*` | bronz %6 / %20 / %25 / %40 | blueprint ızgara → kart → pazaryeri kutusu |
+| Display font | `Fraunces` | Başlıklar (400-700, variable) |
+| Body font | `Inter` | Gövde metni, form, UI (400-600, variable) |
+| Mono font | `Space Mono` | Teknik etiket, nav, form alanları (400 + 700, **variable değil**) |
 
 Swiss-style grid, bol beyaz alan (bronz vurgu dahil "boşluk" olarak sayılır), minimal ikon seti (inline SVG, tek renk).
+
+**Tasarım v2 (20 Ağustos 2026) ile değişenler:** arkaplan tonları koyulaştı, üçüncü bir font
+ailesi (Space Mono) eklendi, sayfa geneline sabit 12 sütunluk *blueprint* ızgara overlay'i
+kondu, kenarlıklar belirginleşti, hero sola hizalı dev tipografiye ve scroll'a bağlı
+parallax/eğim efektine dönüştü, hero ile Neden Biz arasına kayan şerit (marquee) girdi.
+Bölümler `01/ 02/ 03/ 04/` diye numaralandırılır. Kaynak: `plan-design/design/`.
+
+> Roadmap §0'daki renk listesi v1'e aittir (`#181513` / `#1D1916`); güncel değerler
+> yukarıdaki tablodur.
 
 ## Dizin Yapısı
 

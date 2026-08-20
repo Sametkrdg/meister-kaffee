@@ -2,8 +2,8 @@
  * main.js — public site, progressive enhancement.
  *
  * Sayfa JS olmadan da tam çalışır: menü bağlantıları normal <a>, form normal
- * bir POST. Buradaki kod yalnızca deneyimi iyileştirir (mobil menü, sayfa
- * yenilemeden form gönderimi, scroll-reveal).
+ * bir POST, hero nötr değerlerle çizilir. Buradaki kod yalnızca deneyimi
+ * iyileştirir (mobil menü, sayfa yenilemeden form gönderimi, hero parallax).
  */
 (function () {
   'use strict';
@@ -28,7 +28,6 @@
       setOpen(links.getAttribute('data-open') !== 'true');
     });
 
-    // Bir bağlantıya tıklanınca menü kapansın
     links.addEventListener('click', function (e) {
       if (e.target.closest('a')) setOpen(false);
     });
@@ -36,6 +35,42 @@
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') setOpen(false);
     });
+  }
+
+  /* ---- Hero parallax ----------------------------------------------------- */
+  /*
+   * Tasarımdaki scroll'a bağlı kayma / eğim / solma efekti.
+   * Değerler CSS custom property olarak yazılır; stil dosyası bunları
+   * kullanır, JS yoksa :root'taki nötr varsayılanlar geçerli kalır.
+   */
+
+  var hero = document.querySelector('.hero__title');
+
+  if (hero && !reduceMotion) {
+    var ticking = false;
+
+    var applyHero = function () {
+      var y = window.scrollY || window.pageYOffset || 0;
+      var style = document.documentElement.style;
+
+      style.setProperty('--hero-shift', Math.min(y / 12, 30).toFixed(2) + 'px');
+      style.setProperty('--hero-skew', Math.min(y / 90, 4).toFixed(2) + 'deg');
+      style.setProperty('--hero-opacity', Math.max(1 - y / 500, 0.35).toFixed(3));
+
+      ticking = false;
+    };
+
+    window.addEventListener(
+      'scroll',
+      function () {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(applyHero);
+      },
+      { passive: true }
+    );
+
+    applyHero();
   }
 
   /* ---- Yumuşak kaydırma -------------------------------------------------- */
@@ -147,7 +182,7 @@
   /* ---- Scroll-reveal ----------------------------------------------------- */
 
   if (!reduceMotion && 'IntersectionObserver' in window) {
-    var targets = document.querySelectorAll('.why-card, .svc-card, .market__link');
+    var targets = document.querySelectorAll('.why-card, .svc-card');
 
     var observer = new IntersectionObserver(
       function (entries) {

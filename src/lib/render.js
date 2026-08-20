@@ -6,6 +6,7 @@
 import { renderLayout } from '../templates/layout.js';
 import { renderNav } from '../templates/nav.js';
 import { renderHero } from '../templates/hero.js';
+import { renderMarquee } from '../templates/marquee.js';
 import { renderWhyUs } from '../templates/why-us.js';
 import { renderServicesProducts } from '../templates/services-products.js';
 import { renderMarketplace } from '../templates/marketplace.js';
@@ -22,8 +23,9 @@ export function renderHomePage(content, origin) {
 
   const body = [
     renderNav({ hero }),
-    '<main>',
-    renderHero({ hero }),
+    '<main class="page">',
+    renderHero({ hero, contact }),
+    renderMarquee({ whyUs }),
     renderWhyUs({ whyUs }),
     renderServicesProducts({ products }),
     renderMarketplace({ contact }),
