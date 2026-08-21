@@ -91,8 +91,24 @@ Build adımı yoktur (framework/bundler yok) — `wrangler pages dev` / `deploy`
 
 ## Kod Yazarken Kurallar
 
-- **Auth kontrolünü asla `functions/admin/_middleware.js` dışına dağıtma.** Her yeni `/admin/*` veya `/api/admin/*` route'u otomatik olarak bu middleware'den geçer; ayrıca elle kontrol eklemeye gerek yok, tekrar eden auth kodu yazma.
+- **Auth mantığını `src/lib/admin-guard.js` dışına yazma.** Pages Functions'ta bir
+  `_middleware.js` YALNIZCA kendi klasörünün altını sarar. Bu yüzden iki guard dosyası
+  vardır — `functions/admin/_middleware.js` (`/admin/*`, HTML → login'e yönlendirir) ve
+  `functions/api/admin/_middleware.js` (`/api/admin/*`, JSON → 401 + CSRF zorunlu).
+  İkisi de kararı `admin-guard.js`'den alır, yani auth mantığı hâlâ tek yerdedir.
+  **`functions/api/admin/_middleware.js` silinirse tüm admin API'leri korumasız kalır.**
+  Yeni admin route'u eklerken ekstra bir şey yapmana gerek yok; ilgili klasörün
+  middleware'i onu otomatik sarar. Route dosyasının içine auth kontrolü YAZMA.
 - **Şifre asla düz metin olarak loglanmaz veya KV'ye yazılmaz.** Sadece `passwordHash` + `salt` saklanır (bkz. `admin:credentials` şeması).
+- **PBKDF2 iterasyonu 50.000'dir ve artırılamaz.** Workers ücretsiz planında istek
+  başına CPU limiti ~10 ms'dir; ölçüldü: 210.000 ve 150.000 her zaman, 100.000 ise
+  ~6 istekte 1 kez limiti aşıp isteği düşürüyor (HTTP 500 / error 1101). 50.000
+  güvenli paydadır. Roadmap §4.1'deki "≥100.000" bu yüzden geçersizdir —
+  o değer aynı roadmap'in "sıfır bütçe" kararıyla çelişiyor.
+  Düşen iterasyon **pepper** ile telafi edilir: şifre, PBKDF2'den önce
+  `PASSWORD_PEPPER` ile HMAC'lenir. Pepper KV'de değil, yalnızca ortam
+  değişkenindedir; KV sızsa bile sözlük denemesi yapılamaz.
+  `PASSWORD_PEPPER` değişirse TÜM şifreler geçersiz olur, seed yeniden çalıştırılmalı.
 - **Kullanıcı girdisi (contact formu + admin içerik alanları) `src/lib/validate.js`'den geçmeden render'a veya KV'ye yazılmaz.** İçerik server-side HTML'e enjekte edildiği için stored-XSS riski gerçektir, opsiyonel değildir.
 - **SEO alanlarını (`seo:*` KV dokümanları) elle `functions/index.js` içine gömme** — her zaman `src/lib/seo.js` üzerinden üret, tek kaynak orası olsun.
 - **KV şeması değişirse** (`content:*`, `seo:*`, `admin:*` anahtarları) hem `src/lib/kv-schema.js` hem de roadmap dosyasındaki §3 tablosu güncellenmeli — ikisi birbirinden sapmamalı.

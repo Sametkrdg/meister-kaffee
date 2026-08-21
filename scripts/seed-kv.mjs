@@ -5,9 +5,12 @@
  * 1. Admin şifresini PBKDF2-SHA256 ile hashler ve ADMIN_KV'ye yazar.
  * 2. Başlangıç içerik + SEO dokümanlarını CONTENT_KV'ye yazar.
  *
- * Kullanım:
- *   ADMIN_EMAIL="admin@meisterkaffee.com" ADMIN_PASSWORD="..." node scripts/seed-kv.mjs
- *   ADMIN_EMAIL="..." ADMIN_PASSWORD="..." node scripts/seed-kv.mjs --local
+ * Gereken ortam değişkenleri: ADMIN_EMAIL, ADMIN_PASSWORD, PASSWORD_PEPPER.
+ * PASSWORD_PEPPER, Cloudflare Pages'teki değerle birebir aynı olmalıdır.
+ *
+ * PowerShell'de (bash tarzı "VAR=deger komut" sözdizimi PowerShell'de çalışmaz):
+ *   $env:ADMIN_EMAIL="..."; $env:ADMIN_PASSWORD="..."; $env:PASSWORD_PEPPER="..."
+ *   npm run seed
  *
  * --local  : wrangler'ın yerel (miniflare) KV deposuna yazar, `wrangler pages dev` için
  * (varsayılan) : uzak Cloudflare KV namespace'ine yazar
@@ -25,6 +28,7 @@ import { KEYS, DEFAULTS, SEO_DEFAULTS, SEO_SECTIONS } from '../src/lib/kv-schema
 const isLocal = process.argv.includes('--local');
 const email = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
 const password = process.env.ADMIN_PASSWORD || '';
+const pepper = process.env.PASSWORD_PEPPER || '';
 
 function fail(message) {
   console.error(`\n  HATA: ${message}\n`);
@@ -34,6 +38,15 @@ function fail(message) {
 if (!email) fail('ADMIN_EMAIL ortam değişkeni tanımlı değil.');
 if (!password) fail('ADMIN_PASSWORD ortam değişkeni tanımlı değil.');
 if (password.length < 12) fail('ADMIN_PASSWORD en az 12 karakter olmalı.');
+if (!pepper) {
+  fail(
+    [
+      'PASSWORD_PEPPER ortam değişkeni tanımlı değil.',
+      '  Bu değer .dev.vars ile Cloudflare Pages ortam değişkenindekiyle AYNI olmalı;',
+      '  farklıysa üretilen hash ile giriş doğrulaması asla eşleşmez.',
+    ].join('\n')
+  );
+}
 
 const tmpDir = mkdtempSync(join(tmpdir(), 'mk-seed-'));
 process.on('exit', () => rmSync(tmpDir, { recursive: true, force: true }));
@@ -74,7 +87,7 @@ function kvPut(binding, key, value) {
 console.log(`\n  Hedef: ${isLocal ? 'YEREL (miniflare)' : 'UZAK (Cloudflare KV)'}\n`);
 
 // 1) Admin kimlik bilgileri
-const hashed = await hashPassword(password);
+const hashed = await hashPassword(password, pepper);
 kvPut('ADMIN_KV', KEYS.credentials, { email, ...hashed });
 
 // 2) İçerik dokümanları

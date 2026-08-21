@@ -10,13 +10,30 @@
  * her ikisinde de globalThis.crypto.subtle mevcuttur.
  */
 
-const PBKDF2_ITERATIONS = 210000;
+/**
+ * İTERASYON SAYISI NEDEN 50.000?
+ *
+ * Cloudflare Workers ücretsiz planında istek başına CPU limiti ~10 ms'dir.
+ * Ölçüm (production'da doğrulandı): 210.000 iterasyon her seferinde,
+ * 150.000 her seferinde, 100.000 ise ~6 denemenin 1'inde CPU limitini aşıp
+ * isteği düşürüyor (HTTP 500 / error 1101). 50.000 ise 8/8 sorunsuz.
+ *
+ * Roadmap §4.1 "≥100.000" diyordu; bu, aynı roadmap'in "sıfır bütçe =
+ * ücretsiz plan" kararıyla fiilen çelişiyor. Düşen iterasyonu telafi etmek
+ * için şifre, PBKDF2'den ÖNCE sunucu tarafındaki bir gizli anahtarla
+ * (PASSWORD_PEPPER) HMAC'lenir — bkz. pepperPassword().
+ */
+const PBKDF2_ITERATIONS = 50000;
+
+/** Bu değerin üstündeki kayıtlar Workers'ta CPU limitini aşar. */
+export const MAX_SAFE_ITERATIONS = 60000;
+
 const HASH_BYTES = 32;
 const SALT_BYTES = 16;
-export const ALGO = 'PBKDF2-SHA256';
+export const ALGO = 'PBKDF2-SHA256+pepper';
 
 export const SESSION_COOKIE = 'mk_session';
-const SESSION_TTL_SECONDS = 60 * 60 * 8; // 8 saat
+export const SESSION_TTL_SECONDS = 60 * 60 * 8; // 8 saat
 
 /* ---- base64url ----------------------------------------------------------- */
 
@@ -40,18 +57,41 @@ const encoder = new TextEncoder();
 /* ---- Şifre --------------------------------------------------------------- */
 
 /**
+ * Şifreyi PBKDF2'ye vermeden önce sunucu tarafındaki gizli anahtarla HMAC'ler.
+ *
+ * "Pepper" tuzdan farklıdır: tuz KV'de şifreyle birlikte durur, pepper ise
+ * yalnızca ortam değişkeninde (Pages encrypted env var) yaşar. Böylece KV
+ * içeriği tek başına sızsa bile saldırgan sözlük denemesi YAPAMAZ — pepper'ı
+ * bilmeden hiçbir aday şifreyi test edemez. Maliyeti mikrosaniyeler.
+ */
+async function pepperPassword(password, pepper) {
+  if (!pepper) throw new Error('PASSWORD_PEPPER tanımlı değil');
+
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(pepper),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(password));
+  return new Uint8Array(sig);
+}
+
+/**
  * @param {string} password
+ * @param {string} pepper PASSWORD_PEPPER
  * @param {string} [saltB64] mevcut kayıt doğrulanıyorsa onun tuzu
  * @returns {Promise<{passwordHash:string, salt:string, algo:string, iterations:number}>}
  */
-export async function hashPassword(password, saltB64) {
+export async function hashPassword(password, pepper, saltB64) {
   const salt = saltB64
     ? fromBase64Url(saltB64)
     : crypto.getRandomValues(new Uint8Array(SALT_BYTES));
 
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
-    encoder.encode(password),
+    await pepperPassword(password, pepper),
     'PBKDF2',
     false,
     ['deriveBits']
@@ -74,16 +114,29 @@ export async function hashPassword(password, saltB64) {
 /**
  * Şifreyi saklanan kimlik bilgisiyle karşılaştırır.
  * Karşılaştırma sabit zamanlıdır (timing attack yüzeyini kapatır).
+ *
+ * @throws {Error} kayıttaki iterasyon sayısı Workers CPU limitini aşacaksa —
+ *   çağıran taraf bunu yakalayıp "yeniden seed gerekiyor" mesajı gösterir.
  */
-export async function verifyPassword(password, credentials) {
+export async function verifyPassword(password, credentials, pepper) {
   if (!credentials || !credentials.passwordHash || !credentials.salt) return false;
 
   const iterations = credentials.iterations || PBKDF2_ITERATIONS;
+
+  if (iterations > MAX_SAFE_ITERATIONS) {
+    const err = new Error(
+      `Kayıtlı iterasyon sayısı (${iterations}) Workers CPU limitini aşıyor. ` +
+      `scripts/seed-kv.mjs yeniden çalıştırılmalı.`
+    );
+    err.code = 'ITERATIONS_TOO_HIGH';
+    throw err;
+  }
+
   const salt = fromBase64Url(credentials.salt);
 
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
-    encoder.encode(password),
+    await pepperPassword(password, pepper),
     'PBKDF2',
     false,
     ['deriveBits']
@@ -161,9 +214,13 @@ export async function verifySession(token, secret) {
   return payload;
 }
 
-export function createSessionPayload(email) {
+/**
+ * @param {string} email
+ * @param {string} csrf CSRF token — oturuma bağlanır, admin-guard doğrular
+ */
+export function createSessionPayload(email, csrf) {
   const now = Math.floor(Date.now() / 1000);
-  return { sub: email, iat: now, exp: now + SESSION_TTL_SECONDS };
+  return { sub: email, csrf, iat: now, exp: now + SESSION_TTL_SECONDS };
 }
 
 /* ---- Cookie -------------------------------------------------------------- */

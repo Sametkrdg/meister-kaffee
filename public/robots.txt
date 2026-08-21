@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 
-Sitemap: https://meisterkaffee.com/sitemap.xml
+Sitemap: https://meisterkaffee.com.tr/sitemap.xml

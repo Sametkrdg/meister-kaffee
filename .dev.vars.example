@@ -9,3 +9,12 @@ ADMIN_EMAIL="ornek@ornek.com"
 # Session cookie imzalama anahtarı (HMAC-SHA256).
 # Üretmek için: node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 SESSION_SECRET="buraya-üretilen-rastgele-anahtar"
+
+# Şifre "pepper"ı — PBKDF2'den önce şifreyi HMAC'lemek için kullanılır.
+# Tuzdan farkı: KV'de DEĞİL, yalnızca burada ve Pages ortam değişkenlerinde durur.
+# Böylece KV içeriği sızsa bile şifre denemesi yapılamaz.
+#
+# DİKKAT: Bu değer .dev.vars ile Cloudflare Pages'te BİREBİR AYNI olmalı ve
+# değiştirilirse tüm mevcut şifreler geçersiz olur (seed yeniden çalıştırılmalı).
+# Üretmek için: node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+PASSWORD_PEPPER="buraya-üretilen-rastgele-pepper"

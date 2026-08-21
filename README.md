@@ -27,9 +27,20 @@ npx wrangler kv namespace create ADMIN_KV --preview
 
 ### Başlangıç içeriğini ve admin kullanıcısını yaz
 
-```bash
+Üç ortam değişkeni gerekir. `PASSWORD_PEPPER`, Cloudflare Pages'teki değerle
+**birebir aynı** olmalıdır — farklıysa üretilen hash ile giriş doğrulaması eşleşmez.
+
+PowerShell (bash tarzı `VAR=deger komut` sözdizimi PowerShell'de çalışmaz):
+
+```powershell
+$env:ADMIN_EMAIL = "admin@meisterkaffee.com.tr"
+$env:ADMIN_PASSWORD = "..."
+$env:PASSWORD_PEPPER = "..."   # .dev.vars ve Pages ile aynı
 npm run seed
 ```
+
+Script sonunda KV'den geri okuma doğrulaması yapar; "doğrulandı" satırlarını
+görmeden kurulumu tamamlanmış sayma.
 
 ## Geliştirme
 
