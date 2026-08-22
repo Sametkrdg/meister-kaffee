@@ -762,3 +762,120 @@ textarea.form__field {
 
   .footer { justify-content: center; text-align: center; }
 }
+
+/* ---- Hukuki metin sayfaları ---------------------------------------------- */
+
+.legal {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--sp-10) var(--gutter) var(--sp-12);
+}
+
+.legal__back {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--accent-bronze);
+  display: inline-block;
+  margin-bottom: var(--sp-6);
+}
+
+.legal__title {
+  font-size: clamp(28px, 4.5vw, 46px);
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--sp-2);
+}
+
+.legal__updated {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+  margin: 0 0 var(--sp-8);
+}
+
+.legal h2 {
+  font-size: clamp(19px, 2.4vw, 24px);
+  margin: var(--sp-8) 0 var(--sp-2);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--line-soft);
+}
+
+.legal h3 {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  margin: var(--sp-4) 0 var(--sp-1);
+  color: var(--neutral-1);
+}
+
+.legal p,
+.legal li {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-body);
+}
+
+.legal p { margin: 0 0 var(--sp-2); }
+.legal ul { margin: 0 0 var(--sp-2); padding-left: var(--sp-3); }
+.legal li { margin-bottom: 6px; }
+
+.legal strong { color: var(--text-primary); font-weight: 600; }
+.legal a { color: var(--accent-bronze); }
+.legal a:hover { color: var(--accent-hover); }
+
+.legal__lead {
+  font-size: 16px;
+  color: var(--neutral-1);
+  border-left: 2px solid var(--accent-bronze);
+  padding-left: var(--sp-2);
+  margin-bottom: var(--sp-6);
+}
+
+.legal__table-wrap { overflow-x: auto; margin: 0 0 var(--sp-3); }
+
+.legal table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--line);
+  font-size: 14px;
+}
+.legal th,
+.legal td {
+  text-align: left;
+  padding: 11px 13px;
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  color: var(--text-body);
+}
+.legal th {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--accent-bronze);
+  white-space: nowrap;
+}
+.legal th:last-child,
+.legal td:last-child { border-right: 0; }
+.legal tr:last-child td { border-bottom: 0; }
+
+/* Footer'daki hukuki bağlantılar */
+.footer__links { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+.footer__links a {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+}
+.footer__links a:hover { color: var(--accent-bronze); }
+
+/* İletişim formunun altındaki aydınlatma satırı */
+.form__notice {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-faint);
+  margin: 0;
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--line);
+}
+.form__notice a { color: var(--accent-bronze); }

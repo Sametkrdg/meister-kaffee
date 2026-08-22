@@ -10,13 +10,28 @@
 
 /* ---- Anahtarlar ---------------------------------------------------------- */
 
+/** İletişim formu kayıtlarının anahtar öneki. */
+export const SUBMISSION_PREFIX = 'content:submission:';
+
 export const KEYS = {
   hero: 'content:hero',
   whyUs: 'content:why-us',
   products: 'content:products',
   contact: 'content:contact',
-  submissions: 'content:submissions',
   meta: 'content:meta',
+
+  /**
+   * Her form kaydı KENDİ anahtarına yazılır.
+   *
+   * Eskiden tüm kayıtlar tek bir `content:submissions` listesindeydi ve her yeni
+   * mesajda liste baştan okunup yeniden yazılıyordu. Bu, kayıt sayısı büyüdükçe
+   * Workers'ın ~10 ms CPU limitine dayanıyordu (500 uzun mesajda ölçülen maliyet
+   * ~7,7 ms) ve endpoint herkese açık olduğu için kasıtlı olarak da tetiklenebiliyordu.
+   * Ayrı anahtarla yazma maliyeti kayıt sayısından bağımsız sabit kalır: 1 yazma, 0 okuma.
+   *
+   * ISO tarih öneki sayesinde anahtarlar leksikografik olarak eskiden yeniye sıralanır.
+   */
+  submission: (receivedAt, id) => `${SUBMISSION_PREFIX}${receivedAt}-${id}`,
 
   seo: (section) => `seo:${section}`,
   seoProduct: (id) => `seo:product:${id}`,
@@ -218,6 +233,87 @@ export async function readSiteContent(kv) {
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   return { hero, whyUs, products: visible, contact, seo: seoHome };
+}
+
+/* ---- İletişim formu kayıtları -------------------------------------------- */
+
+/**
+ * İletişim formu kayıtlarının saklama süresi: 30 gün.
+ *
+ * KVKK saklama/imha yükümlülüğü gereği belirlenmiştir (veri sorumlusunun
+ * kararı, 21 Ağustos 2026). Süre sonunda kayıt Cloudflare tarafından
+ * otomatik silinir — ayrı bir temizlik görevi veya cron gerekmez.
+ * Aydınlatma metnindeki süre bu sabitle aynı kalmalıdır.
+ */
+export const SUBMISSION_TTL_DAYS = 30;
+const SUBMISSION_TTL_SECONDS = SUBMISSION_TTL_DAYS * 24 * 60 * 60;
+
+/**
+ * Tek bir form kaydını yazar. 1 yazma, 0 okuma.
+ *
+ * Gönderenin özeti KV **metadata**'sına da konur (anahtar başına 1 KB sınırı).
+ * Böylece panel listeyi tek bir `list` çağrısıyla çizebilir; mesaj gövdelerini
+ * tek tek okumak gerekmez. Workers ücretsiz planında istek başına 50 alt-istek
+ * sınırı olduğu için bu fark önemlidir.
+ *
+ * `expirationTtl` ile kayıt 30 gün sonra kendiliğinden silinir.
+ */
+export async function putSubmission(kv, entry) {
+  const key = KEYS.submission(entry.receivedAt, entry.id);
+
+  await kv.put(key, JSON.stringify(entry), {
+    expirationTtl: SUBMISSION_TTL_SECONDS,
+    metadata: {
+      name: entry.name,
+      company: entry.company,
+      email: entry.email,
+      phone: entry.phone,
+      receivedAt: entry.receivedAt,
+      country: entry.country,
+      // Panel listesinde gösterilecek kısa önizleme (metadata 1 KB'ı aşmasın).
+      preview: String(entry.message || '').slice(0, 160),
+    },
+  });
+
+  return key;
+}
+
+/**
+ * Kayıtları yeniden eskiye listeler. Gövdeler okunmaz — özet metadata'dan gelir.
+ * @returns {Promise<{ items: object[], total: number }>}
+ */
+export async function listSubmissions(kv, limit = 100) {
+  const keys = [];
+  let cursor;
+
+  do {
+    const page = await kv.list({ prefix: SUBMISSION_PREFIX, cursor });
+    keys.push(...page.keys);
+    cursor = page.list_complete ? null : page.cursor;
+  } while (cursor);
+
+  // Anahtar öneki ISO tarih: artan sıralama eskiden yeniye demektir.
+  keys.reverse();
+
+  const items = keys.slice(0, limit).map((k) => ({
+    key: k.name,
+    ...(k.metadata || {}),
+  }));
+
+  return { items, total: keys.length };
+}
+
+/** Tek bir kaydın tam gövdesini okur (panelde "tamamını gör" için). */
+export async function readSubmission(kv, key) {
+  if (typeof key !== 'string' || !key.startsWith(SUBMISSION_PREFIX)) return null;
+  return kv.get(key, { type: 'json' });
+}
+
+/** Tek bir kaydı siler (KVKK silme talebi / panelden temizlik). */
+export async function deleteSubmission(kv, key) {
+  if (typeof key !== 'string' || !key.startsWith(SUBMISSION_PREFIX)) return false;
+  await kv.delete(key);
+  return true;
 }
 
 /** Her admin yazımından sonra çağrılır — sitemap lastmod ve denetim izi için. */

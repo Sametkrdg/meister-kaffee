@@ -60,6 +60,22 @@
     return JSON.parse(JSON.stringify(value));
   }
 
+  /**
+   * Hata mesajını insan diline çevirir.
+   *
+   * 429 özel olarak ele alınır: Cloudflare WAF kuralı /api/* için IP başına
+   * 5 istek/10 sn sınırı uyguluyor ve bu yanıt Worker'a hiç ulaşmadığı için
+   * gövdesi bizim JSON formatımızda değildir — jenerik "kaydedilemedi"
+   * mesajı burada yanıltıcı olurdu.
+   */
+  function describeError(res, fallback) {
+    if (res.status === 429) {
+      return 'Çok hızlı işlem yaptınız. Lütfen ~10 saniye bekleyip tekrar deneyin.';
+    }
+    if (res.status === 413) return 'Gönderilen içerik çok büyük.';
+    return (res.data && res.data.error) || fallback;
+  }
+
   /* ---- Giriş ekranı ------------------------------------------------------ */
 
   var loginForm = document.getElementById('login-form');
@@ -83,8 +99,12 @@
       })
         .then(function (res) {
           if (res.ok && res.data.ok) {
-            var next = data.next && data.next.indexOf('/admin') === 0 ? data.next : '/admin';
-            window.location.href = next;
+            // Yalnızca site içi /admin yollarına dön. "//evil.com" ve
+            // "https://…" zaten elenir; "/adminX" gibi komşu yollar da
+            // kabul edilmesin diye sınır karakteri aranır.
+            var raw = data.next || '';
+            var safe = raw === '/admin' || /^\/admin[/?#]/.test(raw);
+            window.location.href = safe ? raw : '/admin';
             return;
           }
           loginStatus.textContent = res.data.error || 'Giriş yapılamadı.';
@@ -457,8 +477,16 @@
     p.dataset.panel = 'inbox';
 
     var list = state.server.submissions || [];
+    var total = state.server.submissionsTotal || list.length;
+
     p.appendChild(
-      el('p', 'panel__intro', 'İletişim formundan gelen mesajlar. En yeniler üstte. (Salt okunur)')
+      el(
+        'p',
+        'panel__intro',
+        'İletişim formundan gelen mesajlar. En yeniler üstte. Toplam ' +
+          total +
+          (total > list.length ? ' kayıt, en yeni ' + list.length + ' tanesi gösteriliyor.' : ' kayıt.')
+      )
     );
 
     if (list.length === 0) {
@@ -489,7 +517,62 @@
       }
       card.appendChild(meta);
 
-      card.appendChild(el('p', 'msg__body', m.message));
+      // Liste görünümünde önizleme; tam gövde istendiğinde ayrıca çekilir.
+      var body = el('p', 'msg__body', m.preview || '');
+      card.appendChild(body);
+
+      var actions = el('div', 'card__actions');
+
+      var more = el('button', 'btn-admin btn-admin--ghost btn-admin--small', 'TAMAMINI GÖR');
+      more.type = 'button';
+      more.addEventListener('click', function () {
+        more.disabled = true;
+        more.textContent = 'YÜKLENİYOR…';
+        api('/api/admin/content?mesaj=' + encodeURIComponent(m.key)).then(function (res) {
+          if (res.ok && res.data.ok) {
+            body.textContent = res.data.data.submission.message;
+            more.remove();
+          } else {
+            more.disabled = false;
+            more.textContent = 'TAMAMINI GÖR';
+          }
+        });
+      });
+      if ((m.preview || '').length >= 160) actions.appendChild(more);
+
+      var del = el('button', 'btn-admin btn-admin--danger btn-admin--small', 'SİL');
+      del.type = 'button';
+      del.addEventListener('click', function () {
+        if (!window.confirm('Bu mesaj kalıcı olarak silinecek. Onaylıyor musun?')) return;
+        del.disabled = true;
+
+        api('/api/admin/content?mesaj=' + encodeURIComponent(m.key), { method: 'DELETE' }).then(
+          function (res) {
+            if (res.ok && res.data.ok) {
+              // Tüm içeriği yeniden çekmek yerine kaydı yerel listeden düşür.
+              // WAF hız sınırı /api/* için IP başına 5 istek/10 sn olduğundan
+              // silme başına 2 istek harcamak arka arkaya silmeyi bloklatıyordu.
+              var drop = function (arr) {
+                var i = (arr || []).findIndex(function (x) { return x.key === m.key; });
+                if (i >= 0) arr.splice(i, 1);
+              };
+              drop(state.server.submissions);
+              drop(state.draft.submissions);
+              if (typeof state.server.submissionsTotal === 'number') {
+                state.server.submissionsTotal -= 1;
+              }
+              render();
+              return;
+            }
+
+            del.disabled = false;
+            window.alert(describeError(res, 'Mesaj silinemedi.'));
+          }
+        );
+      });
+      actions.appendChild(del);
+
+      card.appendChild(actions);
       p.appendChild(card);
     });
 
@@ -615,7 +698,7 @@
           return;
         }
         if (!res.ok || !res.data.ok) {
-          refreshSavebar(res.data.error || 'Kaydedilemedi.', 'error');
+          refreshSavebar(describeError(res, 'Kaydedilemedi.'), 'error');
           return;
         }
 

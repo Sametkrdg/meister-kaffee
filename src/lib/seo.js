@@ -127,12 +127,32 @@ export function renderSeoHead({ seo, contact, products, origin }) {
 
 /** sitemap.xml gövdesi — lastmod content:meta.updatedAt'ten gelir. */
 export function renderSitemap({ origin, updatedAt }) {
-  const loc = escapeHtml((origin || '').replace(/\/$/, '') + '/');
-  const lastmod = updatedAt ? `\n    <lastmod>${escapeHtml(String(updatedAt).slice(0, 10))}</lastmod>` : '';
+  const base = escapeHtml((origin || '').replace(/\/$/, ''));
+  const lastmod = updatedAt
+    ? `\n    <lastmod>${escapeHtml(String(updatedAt).slice(0, 10))}</lastmod>`
+    : '';
+
+  // Ana sayfa KV içeriğiyle değiştiği için lastmod taşır; hukuki metinler
+  // kod içinde sabit olduğundan changefreq'leri düşüktür.
+  const urls = [
+    { loc: `${base}/`, lastmod, changefreq: 'weekly', priority: '1.0' },
+    { loc: `${base}/kvkk-aydinlatma-metni`, lastmod: '', changefreq: 'yearly', priority: '0.3' },
+    { loc: `${base}/cerez-politikasi`, lastmod: '', changefreq: 'yearly', priority: '0.3' },
+  ];
+
+  const body = urls
+    .map(
+      (u) =>
+        `  <url>\n    <loc>${u.loc}</loc>${u.lastmod}\n` +
+        `    <changefreq>${u.changefreq}</changefreq>\n` +
+        `    <priority>${u.priority}</priority>\n  </url>\n`
+    )
+    .join('');
+
   return (
     '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
-    `  <url>\n    <loc>${loc}</loc>${lastmod}\n    <changefreq>weekly</changefreq>\n    <priority>1.0</priority>\n  </url>\n` +
+    body +
     '</urlset>\n'
   );
 }

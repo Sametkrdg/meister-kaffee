@@ -8,7 +8,15 @@
  * PUT gövdesi kısmi olabilir: yalnızca gönderilen bölümler güncellenir.
  */
 
-import { KEYS, readDoc, writeDoc, touchMeta } from '../../../src/lib/kv-schema.js';
+import {
+  KEYS,
+  readDoc,
+  writeDoc,
+  touchMeta,
+  listSubmissions,
+  readSubmission,
+  deleteSubmission,
+} from '../../../src/lib/kv-schema.js';
 import {
   validateContactInfo,
   validateHero,
@@ -18,7 +26,16 @@ import {
 import { jsonResponse } from '../../../src/lib/admin-guard.js';
 
 export async function onRequestGet(context) {
-  const { env } = context;
+  const { env, request } = context;
+  const url = new URL(request.url);
+
+  // Tek bir mesajın tam gövdesi (panelde "tamamını gör")
+  const wanted = url.searchParams.get('mesaj');
+  if (wanted) {
+    const entry = await readSubmission(env.CONTENT_KV, wanted);
+    if (!entry) return jsonResponse({ ok: false, error: 'Mesaj bulunamadı.' }, 404);
+    return jsonResponse({ ok: true, data: { submission: entry } });
+  }
 
   const [hero, whyUs, products, contact, meta, submissions] = await Promise.all([
     readDoc(env.CONTENT_KV, KEYS.hero),
@@ -26,7 +43,8 @@ export async function onRequestGet(context) {
     readDoc(env.CONTENT_KV, KEYS.products),
     readDoc(env.CONTENT_KV, KEYS.contact),
     readDoc(env.CONTENT_KV, KEYS.meta),
-    readDoc(env.CONTENT_KV, KEYS.submissions, []),
+    // Özetler metadata'dan gelir; gövdeler okunmaz (alt-istek bütçesi korunur).
+    listSubmissions(env.CONTENT_KV, 100),
   ]);
 
   return jsonResponse({
@@ -37,10 +55,23 @@ export async function onRequestGet(context) {
       products,
       contact,
       meta,
-      // Panelde "gelen mesajlar" listesi — en yeniler başta.
-      submissions: Array.isArray(submissions) ? submissions.slice(0, 100) : [],
+      submissions: submissions.items,
+      submissionsTotal: submissions.total,
     },
   });
+}
+
+/** KVKK silme talebi veya panelden temizlik. */
+export async function onRequestDelete(context) {
+  const { env, request } = context;
+  const key = new URL(request.url).searchParams.get('mesaj');
+
+  if (!key) return jsonResponse({ ok: false, error: 'Silinecek mesaj belirtilmedi.' }, 400);
+
+  const done = await deleteSubmission(env.CONTENT_KV, key);
+  if (!done) return jsonResponse({ ok: false, error: 'Geçersiz mesaj anahtarı.' }, 400);
+
+  return jsonResponse({ ok: true });
 }
 
 export async function onRequestPut(context) {
@@ -98,5 +129,6 @@ export async function onRequest(context) {
   const method = context.request.method.toUpperCase();
   if (method === 'GET') return onRequestGet(context);
   if (method === 'PUT') return onRequestPut(context);
-  return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'GET, PUT' } });
+  if (method === 'DELETE') return onRequestDelete(context);
+  return new Response('Method Not Allowed', { status: 405, headers: { Allow: 'GET, PUT, DELETE' } });
 }

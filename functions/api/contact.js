@@ -2,17 +2,15 @@
  * POST /api/contact — public iletişim formu.
  *
  * Sıfır bütçe kısıtı gereği e-posta/CRM relay'i yoktur: gelen talepler
- * CONTENT_KV içindeki `content:submissions` listesine eklenir ve admin
- * panelinden okunur.
+ * CONTENT_KV'ye kayıt başına bir anahtar (`content:submission:<tarih>-<id>`)
+ * olarak yazılır ve admin panelinden okunur.
  *
  * Form JS olmadan da gönderilebildiği için (normal form POST'u), istemcinin
  * Accept başlığına göre ya JSON ya da yönlendirme döner.
  */
 
-import { KEYS, readDoc, writeDoc } from '../../src/lib/kv-schema.js';
+import { putSubmission } from '../../src/lib/kv-schema.js';
 import { validateContactSubmission } from '../../src/lib/validate.js';
-
-const MAX_SUBMISSIONS = 500;
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -49,10 +47,8 @@ export async function onRequestPost(context) {
   };
 
   try {
-    const existing = await readDoc(env.CONTENT_KV, KEYS.submissions, []);
-    const list = Array.isArray(existing) ? existing : [];
-    list.unshift(entry);
-    await writeDoc(env.CONTENT_KV, KEYS.submissions, list.slice(0, MAX_SUBMISSIONS));
+    // Tek yazma, hiç okuma yok — maliyet kayıt sayısından bağımsız sabittir.
+    await putSubmission(env.CONTENT_KV, entry);
   } catch (error) {
     console.error('[contact] KV yazma hatası:', error && error.message);
     return respond(

@@ -101,7 +101,7 @@ meister-kaffee-roesterei/
 | `content:why-us` | `[ { icon, title, description } ]` |
 | `content:products` | `[ { id, name, category, description, imageUrl, audience[], order } ]` |
 | `content:contact` | `{ email, phone, address, coordinates, marketplaceLinks: { trendyol, amazon }, socialLinks: {...} }` — `coordinates` hero'nun sağ üst teknik etiketinde gösterilir (tasarım v2), boşsa etiket gizlenir. |
-| `content:submissions` | append-only list of contact-form leads (zero-budget substitute for a paid email/CRM relay) |
+| `content:submission:{receivedAt}-{id}` | Her form kaydı KENDİ anahtarında: `{ id, name, company, email, phone, message, receivedAt, country }`. Gönderen özeti + 160 karakterlik önizleme ayrıca KV **metadata**'sına yazılır, panel listeyi tek `list` çağrısıyla çizer. **Değişiklik gerekçesi:** eskiden tek bir `content:submissions` dizisiydi ve her gönderimde liste baştan okunup yeniden yazılıyordu; 500 uzun kayıtta ölçülen maliyet ~7,7 ms olup Workers'ın ~10 ms CPU limitine dayanıyordu ve endpoint herkese açık olduğu için kasıtlı tetiklenebiliyordu. Artık yazma maliyeti kayıt sayısından bağımsız sabittir (1 yazma, 0 okuma).  Kayıtlar `expirationTtl` ile **30 gün** sonra otomatik silinir (KVKK saklama/imha kararı). |
 | `content:meta` | `{ updatedAt, updatedBy }` — bumped on every admin write, used to drive `sitemap.xml` `lastmod` and cache invalidation |
 
 **`ADMIN_KV`**
@@ -125,6 +125,7 @@ meister-kaffee-roesterei/
 1. **Hashing:** PBKDF2-SHA256, per-account random salt, high iteration count (≥100,000), computed with the Workers Web Crypto API — no plaintext password ever stored or logged.
 2. **Session cookie:** HMAC-SHA256-signed token containing `{ sub: email, exp }`, delivered as `HttpOnly; Secure; SameSite=Strict`. Verified on every request to `/admin/*` and `/api/admin/*` inside `functions/admin/_middleware.js`.
 3. **Brute-force protection:** `admin:lockout:{email}` counter in `ADMIN_KV`; N failed attempts within a window locks the account out for a cooldown period. (Cloudflare's dashboard-level Rate Limiting Rules can be layered on top later if the account moves off the free plan.)
+   **Uygulanan ek katman (21 Ağustos 2026):** Cloudflare WAF rate limiting kuralı — `URI Path starts with /api/`, IP başına 5 istek / 10 saniye, aksiyon Block, süre 10 sn. Free planda period ve duration 10 saniyeye sabittir. Bu kural, KV yazma kotasının (1.000/gün) herkese açık uçlardan tüketilmesini de engeller — ki denetimde bu, iletişim formunu ve panel kaydetmeyi gün boyu bozabilecek en yüksek riskli bulguydu.
 4. **CSRF:** same-site cookie policy plus a double-submit token on every admin `PUT`/`POST`.
 5. **CSP & security headers:** set globally in `functions/_middleware.js` (`Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`).
 6. **Input handling:** every field written through `/api/admin/content` or `/api/admin/seo` — and every public contact-form submission — passes through `src/lib/validate.js` before it is persisted or rendered, since content is injected server-side into HTML (stored-XSS prevention is mandatory here, not optional).

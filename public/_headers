@@ -1,0 +1,25 @@
+# Statik varlıklar için güvenlik başlıkları.
+#
+# NEDEN GEREKLİ: Cloudflare Pages'te `functions/_middleware.js` yalnızca
+# Function route'larını sarar; `public/` altından servis edilen dosyalar
+# middleware'den GEÇMEZ (21 Ağustos 2026 denetiminde ölçüldü: robots.txt
+# hiçbir güvenlik başlığı taşımıyordu). Bu dosya o boşluğu kapatır.
+#
+# HTML sayfaları burada değil, Function olarak servis edilir; onların
+# başlıkları _middleware.js'den gelir.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Cross-Origin-Resource-Policy: same-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+
+# Değişmez varlıklar: uzun cache
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/images/*
+  Cache-Control: public, max-age=2592000
+
+/assets/*
+  Cache-Control: public, max-age=86400

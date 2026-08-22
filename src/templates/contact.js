@@ -78,6 +78,13 @@ export function renderContact({ contact }) {
 
         <p class="form__status" id="form-status" role="status" aria-live="polite"></p>
 
+        <p class="form__notice">
+          Formu göndererek verilerinizin
+          <a href="/kvkk-aydinlatma-metni">KVKK Aydınlatma Metni</a>
+          kapsamında işlenmesini kabul etmiş olursunuz. Mesajlar 30 gün sonra
+          otomatik olarak silinir.
+        </p>
+
         <button class="form__submit" type="submit">MESAJI GÖNDER</button>
       </form>
     </div>

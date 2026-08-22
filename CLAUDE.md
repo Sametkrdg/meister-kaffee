@@ -113,6 +113,13 @@ Build adımı yoktur (framework/bundler yok) — `wrangler pages dev` / `deploy`
 - **SEO alanlarını (`seo:*` KV dokümanları) elle `functions/index.js` içine gömme** — her zaman `src/lib/seo.js` üzerinden üret, tek kaynak orası olsun.
 - **KV şeması değişirse** (`content:*`, `seo:*`, `admin:*` anahtarları) hem `src/lib/kv-schema.js` hem de roadmap dosyasındaki §3 tablosu güncellenmeli — ikisi birbirinden sapmamalı.
 - **Yeni bir bağımlılık/paket eklemeden önce dur:** proje sıfır bütçe + minimal toolchain prensibiyle kurulu; bir framework, ORM, veya ücretli SDK eklemek mimari kararı bozar.
+- **Hız sınırı Cloudflare WAF kuralındadır, kodda değil:** `/api/` ile başlayan tüm
+  yollar için IP başına **5 istek / 10 saniye**, aksiyon Block, süre 10 sn.
+  (Free planda period ve duration 10 saniyeye sabittir, değiştirilemez.)
+  Bu kural admin panelini de kapsar — panelde bir işlem için birden fazla
+  `/api/admin/*` isteği atmaktan kaçın (ör. silmeden sonra tüm içeriği yeniden
+  çekme; yerel state güncelle). 429 yanıtı Worker'a ulaşmaz, gövdesi bizim JSON
+  formatımızda değildir; istemci tarafında `describeError()` ile ele alınır.
 - Tüm buton/CTA metinleri Türkçe kalmalı (örn. "Bizimle İletişime Geç") — marka kopyası çift dilli değildir, sadece Türkçe.
 
 ## Güvenlik Kontrol Listesi (her PR öncesi)
