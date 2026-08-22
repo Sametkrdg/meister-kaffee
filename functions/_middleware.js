@@ -6,13 +6,33 @@
  * Şu an tüm varlıklar aynı origin'den servis edildiği için 'self' yeterlidir.
  */
 
+// Turnstile (bot koruması) kendi origin'inden script yükler ve bir iframe açar;
+// doğrulama çağrılarını da oraya yapar. Bu üç izin olmadan widget sessizce
+// bloklanır ve iletişim formu gönderilemez hâle gelir.
+const TURNSTILE = 'https://challenges.cloudflare.com';
+
 const CSP = [
   "default-src 'self'",
-  "script-src 'self'",
-  "style-src 'self'",
+  `script-src 'self' ${TURNSTILE}`,
+
+  // style-src'de 'unsafe-inline' NEDEN var:
+  // Turnstile'ın scripti widget kapsayıcısına inline style uyguluyor ve
+  // `style-src 'self'` bunu blokluyordu (tarayıcı konsolu: "Applying inline
+  // style violates ... The action has been blocked"). Hash ile çözmek mümkün
+  // değil: inline style ATTRIBUTE'ları için hash ancak 'unsafe-hashes' ile
+  // çalışır ve hash Turnstile her güncellendiğinde sessizce bozulur — yani
+  // iletişim formu bir gün habersiz çalışmayı bırakırdı.
+  //
+  // Riski sınırlı: yalnızca STİL gevşetildi, `script-src` sıkı kaldı.
+  // CSS tabanlı sızdırma ancak saldırgan sayfaya HTML enjekte edebilirse
+  // anlam kazanır; o yol validate.js'teki kaçış ile kapalı (denetimde
+  // canlı payload'larla doğrulandı).
+  "style-src 'self' 'unsafe-inline'",
+
   "img-src 'self' data:",
   "font-src 'self'",
-  "connect-src 'self'",
+  `connect-src 'self' ${TURNSTILE}`,
+  `frame-src ${TURNSTILE}`,
   "form-action 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",

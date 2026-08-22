@@ -5,7 +5,7 @@ import { escapeHtml, safeUrl } from '../lib/validate.js';
  * scroll'a bağlı parallax/eğim efekti.
  *
  * Başlık biçimi (content:hero.headline):
- *   satırlar "|" ile ayrılır, bronz vurgulanacak satır *yıldız* içine alınır.
+ *   satırlar "|" ile ayrılır, vurgulanacak satır *yıldız* içine alınır.
  *   Örn: "ZANAATKÂR|*TİTİZLİĞİYLE*|KAVRULMUŞ"
  *
  * Güvenlik: metin ÖNCE escapeHtml'den geçer, işaretleme SONRA uygulanır —
@@ -41,7 +41,6 @@ export function renderHero({ hero, contact }) {
 
   return `
   <section class="hero" id="top">
-    <p class="hero__marker hero__marker--left">SEC/00 — HERO</p>
     ${marker ? `<p class="hero__marker hero__marker--right">${marker}</p>` : ''}
 
     ${eyebrow ? `<p class="hero__eyebrow"><span class="dot" aria-hidden="true"></span>${eyebrow}</p>` : ''}
@@ -52,7 +51,5 @@ export function renderHero({ hero, contact }) {
       ${subheadline ? `<p class="hero__lead">${subheadline}</p>` : ''}
       <a class="btn btn--hero" href="${ctaHref}">${ctaLabel} →</a>
     </div>
-
-    <p class="hero__scroll">SCROLL</p>
   </section>`;
 }

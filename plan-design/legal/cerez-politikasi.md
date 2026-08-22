@@ -12,10 +12,10 @@
 
 ### 1. Kısaca
 
-**Bu sitede ziyaretçi takibi yapılmamaktadır.** Siteyi normal bir ziyaretçi
-olarak gezdiğinizde tarayıcınıza **hiçbir çerez bırakılmaz**. Google Analytics,
-Meta Pixel, reklam ağı veya benzeri hiçbir üçüncü taraf izleme aracı
-kullanılmamaktadır.
+**Bu sitede ziyaretçi takibi yapılmamaktadır.** Google Analytics, Meta Pixel,
+reklam ağı veya benzeri hiçbir izleme aracı kullanılmaz; hiçbir pazarlama veya
+analitik çerezi yerleştirilmez. Sitede yalnızca **güvenlik amaçlı, kesinlikle
+zorunlu** teknolojiler bulunur ve bunlar da davranışınızı ölçmez.
 
 ### 2. Çerez Nedir
 
@@ -25,13 +25,30 @@ davranışını ölçmek için kullanılabilirler.
 
 ### 3. Bu Sitede Kullanılan Çerezler
 
-#### 3.1 Ziyaretçiler için: yok
+#### 3.1 Ziyaretçiler için: pazarlama/analitik çerezi yok
 
-Sitenin herkese açık sayfalarında **hiçbir çerez kullanılmaz.** Sayfa içeriği,
-yazı tipleri ve görseller doğrudan kendi sunucumuzdan gelir; harici bir alan
-adına istek yapılmaz.
+Sitenin herkese açık sayfalarında **tarafımızca hiçbir çerez yerleştirilmez.**
+Sayfa içeriği, yazı tipleri ve görseller doğrudan kendi sunucumuzdan gelir.
+Tek istisna, iletişim formundaki güvenlik doğrulamasıdır (bkz. 3.2).
 
-#### 3.2 Yönetim paneli için: iki zorunlu çerez
+#### 3.2 İletişim formu güvenlik doğrulaması — Cloudflare Turnstile
+
+İletişim formunun istenmeyen ileti (spam) botları tarafından kötüye
+kullanılmasını önlemek için **Cloudflare Turnstile** kullanılmaktadır.
+Turnstile, formun bulunduğu sayfada Cloudflare'e ait küçük bir çerçeve (iframe)
+çalıştırır ve isteğin bir bottan gelip gelmediğini değerlendirir.
+
+Bu teknoloji **kesinlikle zorunlu** kategorisindedir: güvenlik amacı taşır,
+ziyaretçi davranışını izlemez, reklam veya profilleme için kullanılmaz ve elde
+edilen bilgi tarafımızca okunmaz. Turnstile, *clearance* (site geneli erişim)
+çerezi vermeyecek şekilde yapılandırılmıştır. Çalışma sırasında tarayıcınızda
+teknik nitelikte veri saklayabilir; bu veri yalnızca doğrulama amacıyla
+kullanılır.
+
+Turnstile, gizliliği önceleyecek biçimde tasarlanmıştır ve klasik CAPTCHA
+çözümlerinin aksine ziyaretçi profili oluşturmaz.
+
+#### 3.3 Yönetim paneli için: iki zorunlu çerez
 
 Yalnızca site yöneticisi `/admin` adresinden giriş yaptığında, teknik olarak
 zorunlu iki çerez kullanılır:
@@ -47,7 +64,7 @@ paylaşılmazlar. Bu nedenle önceden rıza alınması gerekmez.
 
 Normal ziyaretçiler bu çerezlerle hiçbir zaman karşılaşmaz.
 
-#### 3.3 Altyapı kaynaklı çerezler
+#### 3.4 Altyapı kaynaklı çerezler
 
 Sitemiz Cloudflare altyapısı üzerinde yayınlanmaktadır. Güvenlik ve bot
 koruması amacıyla, saldırı şüphesi gibi durumlarda Cloudflare tarafından
@@ -79,7 +96,7 @@ KVKK Aydınlatma Metni'ne bakınız.
 
 ---
 
-*Bu metin en son 21 Ağustos 2026 tarihinde güncellenmiştir.*
+*Bu metin en son 22 Ağustos 2026 tarihinde güncellenmiştir.*
 
 ---
 ---

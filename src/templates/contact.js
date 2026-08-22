@@ -1,5 +1,6 @@
 import { escapeHtml, safeUrl, telHref } from '../lib/validate.js';
 import { icon } from '../lib/icons.js';
+import { TURNSTILE_ORIGIN, TURNSTILE_SITEKEY } from '../lib/turnstile.js';
 
 /**
  * İletişim — solda bilgiler, sağda form. Her ikisi de tasarımın ızgara
@@ -42,7 +43,7 @@ export function renderContact({ contact }) {
     <div class="contact-grid">
       <div class="contact__intro">
         <div>
-          <p class="eyebrow"><span class="eyebrow__num">04/</span> İLETİŞİM</p>
+          <p class="eyebrow">İLETİŞİM</p>
           <h2 class="contact__title" id="iletisim-baslik">Kurumsal teklif alın</h2>
           <p class="contact__desc">
             Toptan tedarik, özel kavurma ve markalı ambalaj çözümleri için ekibimizle iletişime geçin.
@@ -77,6 +78,20 @@ export function renderContact({ contact }) {
                   maxlength="4000" placeholder="MESAJINIZ"></textarea>
 
         <p class="form__status" id="form-status" role="status" aria-live="polite"></p>
+
+        <div class="form__turnstile">
+          <div class="cf-turnstile"
+               data-sitekey="${TURNSTILE_SITEKEY}"
+               data-theme="light"
+               data-language="tr"></div>
+          <noscript>
+            <p class="form__notice">
+              Bu form istenmeyen ileti koruması için JavaScript gerektirir.
+              JavaScript kapalıysa bize doğrudan e-posta veya telefonla
+              ulaşabilirsiniz.
+            </p>
+          </noscript>
+        </div>
 
         <p class="form__notice">
           Formu göndererek verilerinizin

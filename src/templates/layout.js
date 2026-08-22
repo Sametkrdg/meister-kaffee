@@ -24,10 +24,20 @@ export function renderLayout({ seo, contact, products, origin, body }) {
   <link rel="icon" href="/images/favicon.png" type="image/png">
   <link rel="apple-touch-icon" href="/images/favicon.png">
 
+  <!-- Mobil tarayıcı çubuğu sayfanın kâğıt tonuyla aynı olsun. Site tek
+       temalıdır (açık); color-scheme, form alanı ve kaydırma çubuğu gibi
+       tarayıcı parçalarının koyu moda çevrilmesini engeller. -->
+  <meta name="theme-color" content="#FAF9F6">
+  <meta name="color-scheme" content="light">
+
   <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/space-mono-400-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/assets/main.css">
+
+  <!-- Turnstile (bot koruması). CSP'de challenges.cloudflare.com izinli
+       olmalıdır — bkz. functions/_middleware.js -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
   <a class="skip-link" href="#neden-biz">İçeriğe geç</a>

@@ -114,7 +114,7 @@ export function validateHero(input) {
   const d = input && typeof input === 'object' ? input : {};
   return {
     eyebrow: cleanText(d.eyebrow, 80),
-    // "|" satır ayracı, *yıldız* bronz vurgu işaretidir (bkz. templates/hero.js).
+    // "|" satır ayracı, *yıldız* vurgu işaretidir (bkz. templates/hero.js).
     headline: cleanText(d.headline, 200),
     subheadline: cleanText(d.subheadline, 400),
     ctaLabel: cleanText(d.ctaLabel, 60),

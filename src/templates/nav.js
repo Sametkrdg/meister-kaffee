@@ -1,8 +1,7 @@
 import { escapeHtml } from '../lib/validate.js';
 
 /**
- * Sticky üst menü. Bağlantılar tasarımdaki gibi numaralandırılmıştır
- * (01/ 02/ 03/) ve monospace ile dizilir.
+ * Sticky üst menü. Bağlantılar monospace ile dizilir.
  *
  * Mobilde bağlantılar açılır panele döner; panelin açılıp kapanmasını
  * public/assets/main.js yönetir (progressive enhancement — JS yoksa
@@ -10,23 +9,22 @@ import { escapeHtml } from '../lib/validate.js';
  */
 
 const LINKS = [
-  { num: '01', label: 'NEDEN BİZ', href: '#neden-biz' },
-  { num: '02', label: 'HİZMETLER', href: '#hizmetler' },
-  { num: '03', label: 'İLETİŞİM', href: '#iletisim' },
+  { label: 'NEDEN BİZ', href: '#neden-biz' },
+  { label: 'HİZMETLER', href: '#hizmetler' },
+  { label: 'İLETİŞİM', href: '#iletisim' },
 ];
 
 export function renderNav({ hero }) {
   const ctaLabel = escapeHtml(hero?.ctaLabel || 'BİZİMLE İLETİŞİME GEÇ');
 
   const links = LINKS.map(
-    (l) =>
-      `<a class="nav__link" href="${l.href}"><span class="nav__num">${l.num}/</span> ${l.label}</a>`
+    (l) => `<a class="nav__link" href="${l.href}">${l.label}</a>`
   ).join('\n      ');
 
   return `
   <header class="nav">
     <a class="brand" href="#top" aria-label="Meister Kaffee-Rösterei ana sayfa">
-      <img class="brand__mark" src="/images/logomark.png" alt="" width="512" height="512" aria-hidden="true">
+      <img class="brand__mark" src="/images/logomark.png" alt="" width="242" height="354" aria-hidden="true">
       <span class="brand__text">
         <span class="brand__name">MEISTER</span>
         <span class="brand__sub">KAFFEE-RÖSTEREİ</span>

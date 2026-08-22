@@ -104,6 +104,20 @@
       status.className = 'form__status' + (kind ? ' form__status--' + kind : '');
     };
 
+    /**
+     * Turnstile token'ı tek kullanımlıktır: başarısız bir gönderimden sonra
+     * sıfırlanmazsa kullanıcının ikinci denemesi de reddedilir.
+     */
+    var resetTurnstile = function () {
+      try {
+        if (window.turnstile && typeof window.turnstile.reset === 'function') {
+          window.turnstile.reset();
+        }
+      } catch (e) {
+        /* widget yüklenmemişse önemsiz */
+      }
+    };
+
     var clearFieldErrors = function () {
       form.querySelectorAll('.form__field--invalid').forEach(function (el) {
         el.classList.remove('form__field--invalid');
@@ -121,6 +135,8 @@
       }
       setStatus('', null);
 
+      // Turnstile token'ı forma gizli bir input olarak kendisi ekler; FormData
+      // onu "cf-turnstile-response" adıyla toplar ve sunucu orada arar.
       var payload = Object.fromEntries(new FormData(form));
 
       fetch(form.action, {
@@ -129,9 +145,16 @@
         body: JSON.stringify(payload),
       })
         .then(function (res) {
-          return res.json().then(function (data) {
-            return { ok: res.ok, data: data };
-          });
+          // WAF'tan gelen 429 HTML döner, JSON değil — parse hatası tüm akışı
+          // catch'e düşürmesin diye boş nesneye çevriliyor.
+          return res
+            .json()
+            .catch(function () {
+              return {};
+            })
+            .then(function (data) {
+              return { ok: res.ok, status: res.status, data: data };
+            });
         })
         .then(function (result) {
           if (result.ok && result.data.ok) {
@@ -154,7 +177,16 @@
           });
 
           var first = Object.keys(errors)[0];
-          setStatus(first ? errors[first] : result.data.error || 'Mesaj gönderilemedi.', 'error');
+          var message = first ? errors[first] : result.data.error;
+
+          // 429 doğrudan Cloudflare WAF'tan gelir; gövdesi bizim JSON
+          // formatımızda değildir, o yüzden özel olarak ele alınır.
+          if (result.status === 429) {
+            message = 'Çok hızlı denediniz. Lütfen birkaç saniye bekleyip tekrar gönderin.';
+          }
+
+          setStatus(message || 'Mesaj gönderilemedi.', 'error');
+          resetTurnstile();
 
           if (submit) {
             submit.disabled = false;
@@ -163,6 +195,7 @@
         })
         .catch(function () {
           setStatus('Bağlantı kurulamadı. Lütfen tekrar deneyin.', 'error');
+          resetTurnstile();
           if (submit) {
             submit.disabled = false;
             submit.textContent = originalLabel;

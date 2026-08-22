@@ -40,7 +40,10 @@ Web sitemizdeki iletişim formunu doldurmanız hâlinde aşağıdaki veriler iş
 | Ülke bilgisi | — | Bağlantınızdan otomatik türetilir (yalnızca ülke kodu; IP adresi saklanmaz) |
 
 Sitemizde ziyaretçi takibi, analitik veya reklam amaçlı çerez
-**kullanılmamaktadır**. Ayrıntı için Çerez Politikası sayfamıza bakabilirsiniz.
+**kullanılmamaktadır**. İletişim formu, istenmeyen ileti botlarına karşı
+**Cloudflare Turnstile** güvenlik doğrulamasıyla korunmaktadır; bu doğrulama
+ziyaretçi profili oluşturmaz. Ayrıntı için Çerez Politikası sayfamıza
+bakabilirsiniz.
 
 ### 3. Kişisel Verilerin İşlenme Amaçları
 
@@ -113,7 +116,7 @@ iletebilirsiniz. Başvurularınız en geç **30 gün** içinde sonuçlandırıl�
 
 ---
 
-*Bu metin en son 21 Ağustos 2026 tarihinde güncellenmiştir.*
+*Bu metin en son 22 Ağustos 2026 tarihinde güncellenmiştir.*
 
 ---
 ---
@@ -148,10 +151,12 @@ midir? İstisna geçerli değilse VERBİS kaydı yaptırılmalıdır.
 
 ## Not 3 — Teknik beyanların doğrulanma durumu
 
-Metindeki teknik iddialar 21 Ağustos 2026 tarihli güvenlik denetiminde canlı
+Metindeki teknik iddialar 21-22 Ağustos 2026 tarihli güvenlik denetiminde canlı
 site üzerinde **ölçülerek** doğrulanmıştır, beyana dayanmamaktadır:
 
-- Ziyaretçiye sıfır çerez bırakıldığı → ölçüldü
+- Pazarlama/analitik çerezi bulunmadığı → ölçüldü (21 Ağu 2026: sıfır çerez;
+  22 Ağu 2026'da spam koruması için Cloudflare Turnstile eklendi — güvenlik
+  amaçlı, kesinlikle zorunlu, ziyaretçi profili oluşturmuyor)
 - Hiçbir analitik/izleme aracı bulunmadığı → kod tabanı tarandı
 - IP adresinin saklanmadığı, yalnızca ülke kodunun tutulduğu → kod doğrulandı
 - 30 günlük otomatik silmenin çalıştığı → KV'de expiration doğrulandı

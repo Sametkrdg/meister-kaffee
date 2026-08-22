@@ -7,8 +7,5 @@ export function renderFooter() {
       <a href="/kvkk-aydinlatma-metni">KVKK AYDINLATMA METNİ</a>
       <a href="/cerez-politikasi">ÇEREZ POLİTİKASI</a>
     </p>
-    <p class="footer__status">
-      <span class="dot dot--online" aria-hidden="true"></span>SYSTEM ONLINE — EST. ARTISAN ROASTING
-    </p>
   </footer>`;
 }

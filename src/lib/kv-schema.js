@@ -48,7 +48,7 @@ export const SEO_SECTIONS = ['home', 'why-us', 'services', 'contact'];
 export const DEFAULTS = {
   [KEYS.hero]: {
     eyebrow: 'KURUMSAL KAHVE ORTAĞINIZ',
-    // Satırlar "|" ile ayrılır; *yıldız* içindeki satır bronz vurgulanır.
+    // Satırlar "|" ile ayrılır; *yıldız* içindeki satır soluk tonda vurgulanır.
     headline: 'ZANAATKÂR|*TİTİZLİĞİYLE*|KAVRULMUŞ',
     subheadline:
       'Oteller, kafeler ve ofisler için özel kavrulan, taze paketlenen ve titizlikle standartlaştırılan premium kahve çekirdekleri.',

@@ -93,29 +93,41 @@
 /* ---- Token'lar ---------------------------------------------------------- */
 
 :root {
-  /* Renk — onaylı tasarım v2 (bkz. CLAUDE.md §Tasarım Token'ları) */
-  --bg-primary: #161311;
-  --bg-secondary: #1B1815;
-  --text-primary: #F3EEE8;
-  --accent-bronze: #C7A47A;
-  --neutral-1: #D8D1C8;
-  --neutral-2: #948B81;
-  --neutral-3: #8A8078;
+  /* Renk — tasarım v3, açık tema (bkz. CLAUDE.md §Tasarım Token'ları).
+     Palet tamamen nötr: kahverengi/bronz hiçbir yerde kullanılmaz. Zemin saf
+     beyaz değil, çok hafif sıcak bir kâğıt tonudur; metin saf siyah değil,
+     yumuşak bir mürekkep tonudur. Aşağıdaki kontrast oranları #FAF9F6
+     üzerinde ölçülmüştür. */
+  --bg-primary: #FAF9F6;     /* kâğıt beyazı */
+  --bg-secondary: #F2F1ED;   /* ikincil panel/kart zemini */
+  --text-primary: #1C1B1A;   /* mürekkep — 16.33:1 */
+  --accent: #1C1B1A;         /* vurgu = mürekkep (buton, ikon, çizgi) */
+  --neutral-1: #3E3C3A;      /* 10.43:1 */
+  --neutral-2: #55534F;      /*  7.29:1 */
+  --neutral-3: #55534F;      /*  7.29:1 */
 
   /* Yardımcı tonlar */
-  --text-lead: #B9B0A6;      /* hero alt metni */
-  --text-body: #A79E93;      /* kart gövde metni */
-  --text-faint: #6E655D;     /* teknik etiketler, footer */
-  --accent-hover: #E4C39A;
-  --accent-success: #8FA98A;
-  --accent-online: #5FA86A;
-  --accent-error: #E08A7D;
+  --text-lead: #4A4845;      /* hero alt metni — 8.66:1 */
+  --text-body: #4A4845;      /* kart gövde metni — 8.66:1 */
+  --text-faint: #6B6965;     /* teknik etiketler, footer — 5.20:1 */
+  --accent-hover: #4A4845;   /* 8.66:1 */
+  /* Yalnızca hero'daki dev başlık satırında kullanılır. 3.96:1 — WCAG'ın
+     büyük metin eşiğini (3:1) geçer, normal metinde KULLANILMAMALIDIR. */
+  --accent-mute: #7E7C78;
+  --accent-success: #2F6B3A;  /* 6.07:1 */
+  --accent-error: #A3271B;    /* 6.97:1 */
 
-  /* Bronz çizgiler — v2'de belirgin şekilde güçlendi */
-  --line-faint: rgba(199, 164, 122, 0.06);   /* blueprint grid */
-  --line-soft: rgba(199, 164, 122, 0.20);    /* bölüm ayraçları */
-  --line: rgba(199, 164, 122, 0.25);         /* kart ve form kenarları */
-  --line-strong: rgba(199, 164, 122, 0.40);  /* pazaryeri kutusu */
+  /* Çizgiler — mürekkebin düşük opaklıklı halleri. Açık zeminde koyu çizgi
+     koyu zemindeki bronzdan çok daha baskın okunur; oranlar buna göre düşük
+     tutulmuştur. */
+  --line-faint: rgba(28, 27, 26, 0.05);   /* blueprint grid */
+  --line-soft: rgba(28, 27, 26, 0.10);    /* bölüm ayraçları */
+  --line: rgba(28, 27, 26, 0.13);         /* kart ve form kenarları */
+  --line-strong: rgba(28, 27, 26, 0.22);  /* pazaryeri kutusu */
+
+  /* Zemin üzerinde çok hafif vurgu (hover, focus dolgusu) */
+  --wash: rgba(28, 27, 26, 0.035);
+  --wash-strong: rgba(28, 27, 26, 0.06);
 
   /* 8-pt Swiss aralık ölçeği */
   --sp-1: 8px;
@@ -125,10 +137,12 @@
   --sp-5: 40px;
   --sp-6: 48px;
   --sp-8: 64px;
-  --sp-10: 80px;
-  --sp-12: 100px;
+  --sp-10: 96px;
+  --sp-12: 132px;
 
-  --gutter: 6%;
+  /* Kenar boşluğu — blueprint ızgarası da bu değeri kullanır, ikisi
+     birlikte kayar. */
+  --gutter: 8.5%;
 
   --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
   --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -153,14 +167,14 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-a { color: var(--accent-bronze); text-decoration: none; }
+a { color: var(--accent); text-decoration: none; }
 a:hover { color: var(--accent-hover); }
 
 img { max-width: 100%; }
 
 h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
 
-:focus-visible { outline: 2px solid var(--accent-bronze); outline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 .sr-only {
   position: absolute;
@@ -180,7 +194,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
   top: 0;
   z-index: 100;
   padding: 12px 20px;
-  background: var(--accent-bronze);
+  background: var(--accent);
   color: var(--bg-primary);
   font-size: 14px;
 }
@@ -194,25 +208,23 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
   color: var(--text-faint);
 }
 
-/* Bölüm numarası + başlık üstü etiket (ör. "01/ NEDEN MEISTER") */
+/* Başlık üstü etiket (ör. "NEDEN MEISTER") */
 .eyebrow {
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.2em;
-  color: var(--accent-bronze);
+  color: var(--accent);
   margin: 0 0 14px;
 }
-.eyebrow__num { color: var(--accent-bronze); }
 
 /* Yanıp sönen durum noktası */
 .dot {
   width: 7px;
   height: 7px;
-  background: var(--accent-bronze);
+  background: var(--accent);
   flex: none;
   animation: blink 2s infinite;
 }
-.dot--online { width: 6px; height: 6px; background: var(--accent-online); }
 
 /* ---- Blueprint grid overlay --------------------------------------------- */
 
@@ -243,20 +255,17 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-3);
-  padding: 20px var(--gutter);
-  background: rgba(22, 19, 17, 0.92);
+  padding: 24px var(--gutter);
+  background: rgba(250, 249, 246, 0.9);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line);
 }
 
 .brand { display: flex; align-items: center; gap: 14px; }
-.brand__mark {
-  height: 36px;
-  width: auto;
-  /* Koyu zeminde monokrom açık silüet */
-  filter: brightness(0) invert(1) opacity(0.95);
-}
+/* Logo artık kaynağında monokrom mürekkep: filtreyle renk zorlanmıyor,
+   böylece amblemin kontur/gövde/dolgu ton farkları korunuyor. */
+.brand__mark { height: 40px; width: auto; }
 .brand__text { display: flex; flex-direction: column; line-height: 1; }
 .brand__name {
   font-family: var(--font-display);
@@ -268,7 +277,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
   font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 0.2em;
-  color: var(--accent-bronze);
+  color: var(--accent);
   margin-top: 3px;
 }
 
@@ -280,7 +289,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
   color: var(--neutral-1);
 }
 .nav__link:hover { color: var(--text-primary); }
-.nav__num { color: var(--accent-bronze); }
 
 .nav__toggle {
   display: none;
@@ -301,8 +309,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
   gap: 10px;
   font-family: inherit;
   cursor: pointer;
-  border: 1px solid var(--accent-bronze);
-  background: var(--accent-bronze);
+  border: 1px solid var(--accent);
+  background: var(--accent);
   color: var(--bg-primary);
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -317,7 +325,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
 
 .hero {
   position: relative;
-  padding: 90px var(--gutter) 60px;
+  padding: 120px var(--gutter) 96px;
   min-height: 88vh;
   display: flex;
   flex-direction: column;
@@ -325,23 +333,24 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
   border-bottom: 1px solid var(--line-soft);
 }
 
+/* Hero'nun sağ üst köşesindeki koordinat + şehir bilgisi. Sol köşedeki
+   "SEC/00 — HERO" etiketi kaldırıldığı için --left varyantı da yok. */
 .hero__marker {
   position: absolute;
-  top: 26px;
+  top: 34px;
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.1em;
   color: var(--text-faint);
   margin: 0;
 }
-.hero__marker--left { left: var(--gutter); }
 .hero__marker--right { right: var(--gutter); text-align: right; }
 
 .hero__eyebrow {
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.25em;
-  color: var(--accent-bronze);
+  color: var(--accent);
   margin: 0 0 26px;
   display: flex;
   align-items: center;
@@ -351,7 +360,11 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
 .hero__title {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(52px, 11vw, 148px);
+  /* Alt sınır 52px iken 320px'lik ekranlarda "TİTİZLİĞİYLE" gibi uzun bir
+     satır gövdeden taşıp kırpılıyordu (canlı sürümde de öyleydi). 40px,
+     11vw'in devreye girdiği ~364px genişliğin altında kalır; bu yüzden daha
+     geniş hiçbir ekranda başlık küçülmez. */
+  font-size: clamp(40px, 11vw, 148px);
   line-height: 0.94;
   letter-spacing: -0.02em;
   margin: 0;
@@ -360,7 +373,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
   opacity: var(--hero-opacity);
   transition: opacity 0.1s linear;
 }
-.hero__accent { color: var(--accent-bronze); }
+.hero__accent { color: var(--accent-mute); }
 
 .hero__foot {
   display: flex;
@@ -376,26 +389,6 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
   color: var(--text-lead);
   max-width: 460px;
   margin: 0;
-}
-
-.hero__scroll {
-  position: absolute;
-  bottom: 20px;
-  left: var(--gutter);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  color: var(--text-faint);
-  margin: 0;
-}
-.hero__scroll::before {
-  content: "";
-  width: 1px;
-  height: 28px;
-  background: var(--line-strong);
 }
 
 /* ---- Marquee ------------------------------------------------------------ */
@@ -458,7 +451,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
 /* Kenarlıklar kartların kendisinde: dış çerçeve + sağ/alt çizgiler */
 .why-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   border: 1px solid var(--line);
 }
 .why-card {
@@ -470,9 +463,8 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
   border-bottom: 1px solid var(--line);
   transition: background-color 0.2s ease;
 }
-.why-card:hover { background: rgba(199, 164, 122, 0.06); }
-.why-card__id { font-family: var(--font-mono); font-size: 10px; color: var(--text-faint); }
-.why-card__icon { color: var(--accent-bronze); }
+.why-card:hover { background: var(--wash); }
+.why-card__icon { color: var(--accent); }
 .why-card__title {
   font-family: var(--font-body);
   font-size: 17px;
@@ -486,12 +478,15 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
 
 .svc-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
   border-top: 1px solid var(--line);
   border-left: 1px solid var(--line);
 }
 .svc-card {
-  background: var(--bg-secondary);
+  /* Bölüm zemini --bg-secondary; kart kâğıt tonunda kalınca açık temada
+     yüzey farkı okunuyor (koyu temada ikisi de aynı tondaydı ve kartlar
+     yalnızca kenarlıkla ayrılıyordu). */
+  background: var(--bg-primary);
   padding: 38px 30px;
   display: flex;
   flex-direction: column;
@@ -507,10 +502,9 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.12em;
-  color: var(--accent-bronze);
+  color: var(--accent);
   margin: 0;
 }
-.svc-card__id { font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); }
 .svc-card__title { font-size: 23px; margin: 0; }
 .svc-card__desc { font-size: 14px; line-height: 1.7; color: var(--text-body); margin: 0; flex: 1; }
 .svc-card__rule { height: 1px; background: var(--line); margin: 4px 0; border: 0; }
@@ -525,7 +519,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
 }
 .svc-card__point::before {
   content: "\2192";                      /* → */
-  color: var(--accent-bronze);
+  color: var(--accent);
   font-family: var(--font-mono);
 }
 
@@ -557,14 +551,17 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
   transition: background-color 0.15s ease;
 }
 .market__link:last-child { border-right: 0; }
-.market__link:hover { background: rgba(199, 164, 122, 0.1); color: var(--text-primary); }
-.market__dot { width: 7px; height: 7px; background: var(--accent-bronze); flex: none; }
+.market__link:hover { background: var(--wash-strong); color: var(--text-primary); }
+.market__dot { width: 7px; height: 7px; background: var(--accent); flex: none; }
 
 /* ---- İletişim ----------------------------------------------------------- */
 
+/* minmax(0, …): ızgara sütununun varsayılan alt sınırı içeriğin min-content
+   genişliğidir. Turnstile widget'ı 300px'in altına inmediği için 320px'lik
+   ekranlarda sütun 330px'e şişip sayfayı yatay taşırıyordu. */
 .contact-grid {
   display: grid;
-  grid-template-columns: 1fr 1.1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
   gap: 70px;
   max-width: 1200px;
   margin: 0 auto;
@@ -597,7 +594,7 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
   text-transform: uppercase;
 }
 a.contact__item:hover { color: var(--accent-hover); }
-.contact__icon { color: var(--accent-bronze); flex: none; display: flex; }
+.contact__icon { color: var(--accent); flex: none; display: flex; }
 
 /* Form alanları da aynı ızgara mantığında: kenarlıklar hücreleri ayırır */
 .form { display: flex; flex-direction: column; border: 1px solid var(--line); }
@@ -617,7 +614,7 @@ a.contact__item:hover { color: var(--accent-hover); }
 }
 .form__field--split { border-right: 1px solid var(--line); }
 .form__field::placeholder { color: var(--text-faint); }
-.form__field:focus { outline: none; background: rgba(199, 164, 122, 0.06); }
+.form__field:focus { outline: none; background: var(--wash); }
 .form__field:focus-visible { outline: none; }
 textarea.form__field {
   font-family: var(--font-body);
@@ -644,7 +641,7 @@ textarea.form__field {
 
 .form__submit {
   padding: 18px;
-  background: var(--accent-bronze);
+  background: var(--accent);
   color: var(--bg-primary);
   border: none;
   font-size: 13px;
@@ -672,15 +669,6 @@ textarea.form__field {
   font-family: var(--font-mono);
 }
 .footer__copy { font-size: 11px; color: var(--text-faint); letter-spacing: 0.02em; margin: 0; }
-.footer__status {
-  font-size: 10px;
-  letter-spacing: 0.15em;
-  color: var(--accent-bronze);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-}
 
 /* ---- Hareket ------------------------------------------------------------ */
 
@@ -713,7 +701,9 @@ textarea.form__field {
 /* ---- Responsive --------------------------------------------------------- */
 
 @media (max-width: 900px) {
-  :root { --gutter: 7%; --sp-12: 72px; }
+  /* Kenar boşluğu masaüstündekinden dar ama v2'dekinden geniş: dar ekranda
+     yüzde değeri büyütmek satır uzunluğunu okunamaz hale getiriyor. */
+  :root { --gutter: 7.5%; --sp-12: 88px; --sp-10: 72px; }
 
   /* Dar ekranda 12 sütunluk blueprint gürültüye dönüşüyor */
   .grid-overlay span:nth-child(n + 5) { display: none; }
@@ -731,7 +721,7 @@ textarea.form__field {
     align-items: stretch;
     gap: 0;
     padding: var(--sp-2) var(--gutter) var(--sp-3);
-    background: rgba(22, 19, 17, 0.97);
+    background: rgba(250, 249, 246, 0.97);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--line);
@@ -740,11 +730,11 @@ textarea.form__field {
   .nav__link { padding: 14px 0; font-size: 13px; border-bottom: 1px solid var(--line-soft); }
   .nav__links .btn { margin-top: var(--sp-2); justify-content: center; }
 
-  .hero { min-height: 0; padding: 72px var(--gutter) 76px; }
+  .hero { min-height: 0; padding: 92px var(--gutter) 92px; }
   .hero__marker--right { display: none; }
-  .hero__scroll { display: none; }
 
-  .contact-grid { grid-template-columns: 1fr; gap: var(--sp-6); }
+  /* minmax(0, …) tek sütunda da gerekli — bkz. .contact-grid açıklaması. */
+  .contact-grid { grid-template-columns: minmax(0, 1fr); gap: var(--sp-6); }
 }
 
 @media (max-width: 560px) {
@@ -775,7 +765,7 @@ textarea.form__field {
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.1em;
-  color: var(--accent-bronze);
+  color: var(--accent);
   display: inline-block;
   margin-bottom: var(--sp-6);
 }
@@ -821,13 +811,22 @@ textarea.form__field {
 .legal li { margin-bottom: 6px; }
 
 .legal strong { color: var(--text-primary); font-weight: 600; }
-.legal a { color: var(--accent-bronze); }
-.legal a:hover { color: var(--accent-hover); }
+/* Vurgu rengi artık gövde metniyle aynı mürekkep olduğu için bağlantılar
+   yalnızca renkle ayırt edilemiyor (WCAG 1.4.1). Metin içindeki her bağlantı
+   bu yüzden altı çizili. */
+.legal a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--line-strong);
+}
+.legal a:hover { color: var(--accent-hover); text-decoration-color: currentColor; }
 
 .legal__lead {
   font-size: 16px;
   color: var(--neutral-1);
-  border-left: 2px solid var(--accent-bronze);
+  border-left: 2px solid var(--accent);
   padding-left: var(--sp-2);
   margin-bottom: var(--sp-6);
 }
@@ -852,7 +851,7 @@ textarea.form__field {
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.08em;
-  color: var(--accent-bronze);
+  color: var(--accent);
   white-space: nowrap;
 }
 .legal th:last-child,
@@ -865,8 +864,11 @@ textarea.form__field {
   font-size: 11px;
   letter-spacing: 0.05em;
   color: var(--text-faint);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--line-strong);
 }
-.footer__links a:hover { color: var(--accent-bronze); }
+.footer__links a:hover { color: var(--accent); text-decoration-color: currentColor; }
 
 /* İletişim formunun altındaki aydınlatma satırı */
 .form__notice {
@@ -878,4 +880,22 @@ textarea.form__field {
   padding: 13px 14px;
   border-bottom: 1px solid var(--line);
 }
-.form__notice a { color: var(--accent-bronze); }
+.form__notice a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--line-strong);
+}
+.form__notice a:hover { text-decoration-color: currentColor; }
+
+/* Turnstile widget'ı — form ızgarasına oturur.
+   Widget 300px'ten dar olamıyor; ~330px'in altındaki ekranlarda taşmayı
+   sayfaya değil bu kutuya bırakıyoruz (Turnstile'ın onay kutusu solda
+   olduğu için kaydırmadan da kullanılabilir kalıyor). */
+.form__turnstile {
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+.form__turnstile:empty { display: none; }
+.form__turnstile .form__notice { padding: 0; border: 0; }

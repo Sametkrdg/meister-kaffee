@@ -255,7 +255,7 @@
         rows: 3,
         maxlength: 200,
         hint:
-          'Satırları "|" ile ayır. Bronz renkli olmasını istediğin satırı yıldız içine al. ' +
+          'Satırları "|" ile ayır. Soluk tonda görünmesini istediğin satırı yıldız içine al. ' +
           'Örnek: ZANAATKÂR|*TİTİZLİĞİYLE*|KAVRULMUŞ',
       })
     );
@@ -291,7 +291,7 @@
       var card = el('div', 'card');
 
       var head = el('div', 'card__head');
-      head.appendChild(el('p', 'card__title', 'KART A' + index));
+      head.appendChild(el('p', 'card__title', 'KART ' + (index + 1)));
       var actions = el('div', 'card__actions');
 
       if (index > 0) actions.appendChild(moveBtn('↑ YUKARI', state.draft.whyUs, index, -1, panelWhy));
@@ -349,7 +349,7 @@
       var card = el('div', 'card');
 
       var head = el('div', 'card__head');
-      head.appendChild(el('p', 'card__title', 'SRV/0' + index + '  ·  ' + (item.id || 'yeni')));
+      head.appendChild(el('p', 'card__title', 'ÜRÜN ' + (index + 1) + '  ·  ' + (item.id || 'yeni')));
 
       var actions = el('div', 'card__actions');
       var del = el('button', 'btn-admin btn-admin--danger btn-admin--small', 'SİL');

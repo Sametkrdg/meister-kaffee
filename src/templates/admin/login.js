@@ -15,12 +15,14 @@ export function renderLoginPage({ nextPath = '', configError = false } = {}) {
   <title>Yönetim Girişi — Meister Kaffee-Rösterei</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="/images/favicon.png" type="image/png">
+  <meta name="theme-color" content="#FAF9F6">
+  <meta name="color-scheme" content="light">
   <link rel="stylesheet" href="/assets/admin.css">
 </head>
 <body class="auth">
   <main class="auth__card">
     <div class="auth__brand">
-      <img src="/images/logomark.png" alt="" width="512" height="512" class="auth__mark">
+      <img src="/images/logomark.png" alt="" width="242" height="354" class="auth__mark">
       <p class="auth__name">MEISTER</p>
       <p class="auth__sub">KAFFEE-RÖSTEREİ</p>
     </div>

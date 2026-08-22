@@ -29,7 +29,7 @@ export function renderMarketplace({ contact }) {
   return `
   <section class="market" aria-labelledby="magazalar-baslik">
     <div class="market__intro">
-      <p class="eyebrow" id="magazalar-baslik"><span class="eyebrow__num">03/</span> MAĞAZALARIMIZ</p>
+      <p class="eyebrow" id="magazalar-baslik">MAĞAZALARIMIZ</p>
       <p class="market__text">Ürünlerimizi favori pazaryerlerinizden de temin edebilirsiniz.</p>
     </div>
     <div class="market__links">${buttons}</div>

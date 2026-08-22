@@ -11,6 +11,7 @@
 
 import { putSubmission } from '../../src/lib/kv-schema.js';
 import { validateContactSubmission } from '../../src/lib/validate.js';
+import { verifyTurnstile } from '../../src/lib/turnstile.js';
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -26,6 +27,25 @@ export async function onRequestPost(context) {
     }
   } catch {
     return respond({ ok: false, error: 'Form verisi okunamadı.' }, 400, wantsJson, request);
+  }
+
+  // Bot koruması, alan doğrulamasından ÖNCE çalışır: geçersiz bir istek için
+  // boşuna doğrulama yapılmasın ve bot'a hangi alanın hatalı olduğu sızmasın.
+  const turnstile = await verifyTurnstile(
+    payload && (payload['cf-turnstile-response'] || payload.turnstileToken),
+    env.TURNSTILE_SECRET_KEY,
+    request.headers.get('cf-connecting-ip')
+  );
+
+  if (!turnstile.ok) {
+    console.warn('[contact] Turnstile reddi:', turnstile.reason);
+
+    const message =
+      turnstile.reason === 'secret-missing'
+        ? 'Sunucu yapılandırması eksik. Lütfen e-posta ile ulaşın.'
+        : 'Güvenlik doğrulaması tamamlanamadı. Sayfayı yenileyip tekrar deneyin.';
+
+    return respond({ ok: false, error: message }, 403, wantsJson, request);
   }
 
   const result = validateContactSubmission(payload);

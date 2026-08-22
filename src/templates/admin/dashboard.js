@@ -18,12 +18,14 @@ export function renderDashboard({ session }) {
   <title>Yönetim Paneli — Meister Kaffee-Rösterei</title>
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" href="/images/favicon.png" type="image/png">
+  <meta name="theme-color" content="#FAF9F6">
+  <meta name="color-scheme" content="light">
   <link rel="stylesheet" href="/assets/admin.css">
 </head>
 <body class="admin">
   <header class="topbar">
     <div class="topbar__brand">
-      <img src="/images/logomark.png" alt="" width="512" height="512" class="topbar__mark">
+      <img src="/images/logomark.png" alt="" width="242" height="354" class="topbar__mark">
       <span class="topbar__name">MEISTER</span>
       <span class="topbar__tag">YÖNETİM</span>
     </div>
@@ -35,11 +37,11 @@ export function renderDashboard({ session }) {
   </header>
 
   <nav class="tabs" role="tablist">
-    <button class="tab" role="tab" data-panel="hero" aria-selected="true">01/ HERO</button>
-    <button class="tab" role="tab" data-panel="why" aria-selected="false">02/ NEDEN BİZ</button>
-    <button class="tab" role="tab" data-panel="products" aria-selected="false">03/ HİZMETLER</button>
-    <button class="tab" role="tab" data-panel="contact" aria-selected="false">04/ İLETİŞİM</button>
-    <button class="tab" role="tab" data-panel="inbox" aria-selected="false">05/ MESAJLAR</button>
+    <button class="tab" role="tab" data-panel="hero" aria-selected="true">HERO</button>
+    <button class="tab" role="tab" data-panel="why" aria-selected="false">NEDEN BİZ</button>
+    <button class="tab" role="tab" data-panel="products" aria-selected="false">HİZMETLER</button>
+    <button class="tab" role="tab" data-panel="contact" aria-selected="false">İLETİŞİM</button>
+    <button class="tab" role="tab" data-panel="inbox" aria-selected="false">MESAJLAR</button>
   </nav>
 
   <main class="wrap" id="app" aria-busy="true">

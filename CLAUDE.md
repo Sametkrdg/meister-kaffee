@@ -20,26 +20,50 @@ Bu kararlardan biri değiştirilecekse (örn. bir framework eklemek, ücretli bi
 
 ## Tasarım Token'ları (sabit — hardcode edilebilir CSS custom property olarak tutulmalı)
 
-| Token | Değer | Kullanım |
-|---|---|---|
-| `--bg-primary` | `#161311` | Ana arkaplan (anthracite) |
-| `--bg-secondary` | `#1B1815` | İkincil panel/kart arkaplanı |
-| `--text-primary` | `#F3EEE8` | Ana metin (off-white) |
-| `--accent-bronze` | `#C7A47A` | Bronz/metalik vurgu (CTA, ikonlar, çizgiler) |
-| `--neutral-1..3` | `#D8D1C8`, `#948B81`, `#8A8078` | Yardımcı metin/border tonları |
-| `--text-faint` | `#6E655D` | Teknik etiketler (SEC/00, koordinat, footer) |
-| `--line-*` | bronz %6 / %20 / %25 / %40 | blueprint ızgara → kart → pazaryeri kutusu |
-| Display font | `Fraunces` | Başlıklar (400-700, variable) |
-| Body font | `Inter` | Gövde metni, form, UI (400-600, variable) |
-| Mono font | `Space Mono` | Teknik etiket, nav, form alanları (400 + 700, **variable değil**) |
+Palet **tamamen nötr**: kahverengi, bronz, bej veya başka bir renkli vurgu
+kullanılmaz. Yeni bir renk eklemek gerekiyorsa önce kullanıcıya sorulmalıdır.
 
-Swiss-style grid, bol beyaz alan (bronz vurgu dahil "boşluk" olarak sayılır), minimal ikon seti (inline SVG, tek renk).
+| Token | Değer | Kontrast¹ | Kullanım |
+|---|---|---|---|
+| `--bg-primary` | `#FAF9F6` | — | Ana arkaplan (kâğıt beyazı) |
+| `--bg-secondary` | `#F2F1ED` | — | İkincil panel/kart arkaplanı |
+| `--text-primary` | `#1C1B1A` | 16.33:1 | Ana metin (mürekkep) |
+| `--accent` | `#1C1B1A` | 16.33:1 | Vurgu: CTA, ikon, çizgi (= mürekkep) |
+| `--accent-hover` | `#4A4845` | 8.66:1 | Hover |
+| `--accent-mute` | `#7E7C78` | 3.96:1 | **Yalnızca** hero'daki dev başlık satırı² |
+| `--neutral-1..3` | `#3E3C3A`, `#55534F`, `#55534F` | 10.43 / 7.29 | Yardımcı metin tonları |
+| `--text-lead` / `--text-body` | `#4A4845` | 8.66:1 | Hero alt metni / kart gövdesi |
+| `--text-faint` | `#6B6965` | 5.20:1 | Küçük teknik etiketler, footer |
+| `--accent-success` / `--accent-error` | `#2F6B3A` / `#A3271B` | 6.07 / 6.97 | Form geri bildirimi |
+| `--line-*` | mürekkep %5 / %10 / %13 / %22 | — | blueprint ızgara → kart → pazaryeri kutusu |
+| `--wash` / `--wash-strong` | mürekkep %3.5 / %6 | — | Hover ve focus dolgusu |
+| `--gutter` | `8.5%` (≤900px: `7.5%`) | — | Sayfa kenar boşluğu; blueprint ızgara da bunu kullanır |
+| Display font | `Fraunces` | — | Başlıklar (400-700, variable) |
+| Body font | `Inter` | — | Gövde metni, form, UI (400-600, variable) |
+| Mono font | `Space Mono` | — | Teknik etiket, nav, form alanları (400 + 700, **variable değil**) |
 
-**Tasarım v2 (20 Ağustos 2026) ile değişenler:** arkaplan tonları koyulaştı, üçüncü bir font
-ailesi (Space Mono) eklendi, sayfa geneline sabit 12 sütunluk *blueprint* ızgara overlay'i
-kondu, kenarlıklar belirginleşti, hero sola hizalı dev tipografiye ve scroll'a bağlı
-parallax/eğim efektine dönüştü, hero ile Neden Biz arasına kayan şerit (marquee) girdi.
-Bölümler `01/ 02/ 03/ 04/` diye numaralandırılır. Kaynak: `plan-design/design/`.
+¹ `--bg-primary` üzerinde ölçülen WCAG kontrast oranı. Hepsi normal metin için
+AA eşiğini (4.5:1) geçer. Yeni bir ton eklenirken bu eşik korunmalıdır.
+² 3.96:1 yalnızca **büyük metin** eşiğini (3:1) geçer; normal boyutlu metinde
+kullanılırsa erişilebilirlik bozulur.
+
+Swiss-style grid, bol beyaz alan, minimal ikon seti (inline SVG, tek renk).
+
+**Vurgu artık gövde metniyle aynı renk olduğu için** metin içindeki bağlantılar
+yalnızca renkle ayırt edilemez (WCAG 1.4.1): hukuki metinler, footer ve form
+aydınlatma satırındaki bağlantılar **altı çizili** olmak zorundadır.
+
+**Tasarım v2 (20 Ağustos 2026):** üçüncü font ailesi (Space Mono), 12 sütunluk
+*blueprint* ızgara overlay'i, belirgin kenarlıklar, sola hizalı dev hero
+tipografisi + scroll parallax'ı, hero ile Neden Biz arasında kayan şerit
+(marquee). Kaynak: `plan-design/design/`.
+
+**Tasarım v3 (22 Ağustos 2026, müşteri isteği):** koyu tema açık temaya
+çevrildi, kahverengi/bronz paletten tamamen çıkarıldı, kenar boşlukları
+genişletildi ve **tüm bölüm numaraları ile teknik etiketler kaldırıldı**
+(`01/ 02/ 03/ 04/`, `SEC/00`, `A0/A1…`, `SRV/00…`, `FIG.01`, `SCROLL`,
+`SYSTEM ONLINE`). Bunları geri eklemeyin. Logo `meisterkaffee/*.svg`
+kaynaklarından `scripts/build-logo.mjs` ile monokrom üretilir.
 
 > Roadmap §0'daki renk listesi v1'e aittir (`#181513` / `#1D1916`); güncel değerler
 > yukarıdaki tablodur.
@@ -60,6 +84,7 @@ functions/          Cloudflare Pages Functions (routing = dosya yolu)
   api/admin/*        login, logout, content, seo endpoint'leri
   admin/_middleware.js  /admin/* için auth guard — TEK auth kontrol noktası
 scripts/seed-kv.mjs  yerel: admin şifresini hashleyip KV'yi ilk kez doldurur
+scripts/build-logo.mjs yerel: meisterkaffee/*.svg → public/images/*.png|jpg (tek seferlik)
 wrangler.toml        KV binding'leri, build config
 ```
 
@@ -83,11 +108,16 @@ wrangler kv:namespace create ADMIN_KV
 # admin kullanıcısını / başlangıç içeriğini KV'ye yazma
 node scripts/seed-kv.mjs
 
+# logo varlıklarını yeniden üret (yalnızca logo kaynağı değişirse)
+node scripts/build-logo.mjs
+
 # deploy
 wrangler pages deploy
 ```
 
 Build adımı yoktur (framework/bundler yok) — `wrangler pages dev` / `deploy` doğrudan `functions/` ve `public/` üzerinden çalışır.
+`scripts/` altındakiler deploy hattının parçası değildir; elle çalıştırılan yerel araçlardır.
+`build-logo.mjs` `sharp`'a ihtiyaç duyar (şu an wrangler ile birlikte geliyor; kaybolursa `npm i -D sharp`).
 
 ## Kod Yazarken Kurallar
 

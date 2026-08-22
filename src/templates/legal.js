@@ -12,7 +12,7 @@
  * kaynak taslakla birlikte tutulur.
  */
 
-const UPDATED = '21 Ağustos 2026';
+const UPDATED = '22 Ağustos 2026';
 const CONTACT = 'halitcenat@meisterkaffee.com.tr';
 
 function shell({ title, description, slug, body }) {
@@ -26,6 +26,8 @@ function shell({ title, description, slug, body }) {
   <link rel="canonical" href="https://meisterkaffee.com.tr/${slug}">
 
   <link rel="icon" href="/images/favicon.png" type="image/png">
+  <meta name="theme-color" content="#FAF9F6">
+  <meta name="color-scheme" content="light">
   <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/assets/main.css">
 </head>
@@ -86,7 +88,9 @@ export function renderKvkkPage() {
     </div>
     <p>
       Sitemizde ziyaretçi takibi, analitik veya reklam amaçlı çerez
-      <strong>kullanılmamaktadır</strong>. Ayrıntı için
+      <strong>kullanılmamaktadır</strong>. İletişim formu, istenmeyen ileti botlarına
+      karşı <strong>Cloudflare Turnstile</strong> güvenlik doğrulamasıyla korunmaktadır;
+      bu doğrulama ziyaretçi profili oluşturmaz. Ayrıntı için
       <a href="/cerez-politikasi">Çerez Politikası</a> sayfamıza bakabilirsiniz.
     </p>
 
@@ -185,10 +189,11 @@ export function renderKvkkPage() {
 export function renderCookiePage() {
   const body = `
     <p class="legal__lead">
-      <strong>Bu sitede ziyaretçi takibi yapılmamaktadır.</strong> Siteyi normal bir
-      ziyaretçi olarak gezdiğinizde tarayıcınıza <strong>hiçbir çerez bırakılmaz</strong>.
-      Google Analytics, Meta Pixel, reklam ağı veya benzeri hiçbir üçüncü taraf izleme
-      aracı kullanılmamaktadır.
+      <strong>Bu sitede ziyaretçi takibi yapılmamaktadır.</strong> Google Analytics,
+      Meta Pixel, reklam ağı veya benzeri hiçbir izleme aracı kullanılmaz; hiçbir
+      pazarlama veya analitik çerezi yerleştirilmez. Sitede yalnızca
+      <strong>güvenlik amaçlı, kesinlikle zorunlu</strong> teknolojiler bulunur ve
+      bunlar da davranışınızı ölçmez.
     </p>
 
     <h2>1. Çerez Nedir</h2>
@@ -200,14 +205,34 @@ export function renderCookiePage() {
 
     <h2>2. Bu Sitede Kullanılan Çerezler</h2>
 
-    <h3>2.1 Ziyaretçiler için: yok</h3>
+    <h3>2.1 Ziyaretçiler için: pazarlama/analitik çerezi yok</h3>
     <p>
-      Sitenin herkese açık sayfalarında <strong>hiçbir çerez kullanılmaz.</strong> Sayfa
-      içeriği, yazı tipleri ve görseller doğrudan kendi sunucumuzdan gelir; harici bir
-      alan adına istek yapılmaz.
+      Sitenin herkese açık sayfalarında <strong>tarafımızca hiçbir çerez
+      yerleştirilmez.</strong> Sayfa içeriği, yazı tipleri ve görseller doğrudan kendi
+      sunucumuzdan gelir. Tek istisna, iletişim formundaki güvenlik doğrulamasıdır
+      (bkz. 2.2).
     </p>
 
-    <h3>2.2 Yönetim paneli için: iki zorunlu çerez</h3>
+    <h3>2.2 İletişim formu güvenlik doğrulaması — Cloudflare Turnstile</h3>
+    <p>
+      İletişim formunun istenmeyen ileti (spam) botları tarafından kötüye kullanılmasını
+      önlemek için <strong>Cloudflare Turnstile</strong> kullanılmaktadır. Turnstile,
+      formun bulunduğu sayfada Cloudflare'e ait küçük bir çerçeve (iframe) çalıştırır ve
+      isteğin bir bottan gelip gelmediğini değerlendirir.
+    </p>
+    <p>
+      Bu teknoloji <strong>kesinlikle zorunlu</strong> kategorisindedir: güvenlik amacı
+      taşır, ziyaretçi davranışını izlemez, reklam veya profilleme için kullanılmaz ve
+      elde edilen bilgi tarafımızca okunmaz. Turnstile, <em>clearance</em> (site geneli
+      erişim) çerezi vermeyecek şekilde yapılandırılmıştır. Çalışma sırasında tarayıcınızda
+      teknik nitelikte veri saklayabilir; bu veri yalnızca doğrulama amacıyla kullanılır.
+    </p>
+    <p>
+      Turnstile, gizliliği önceleyecek biçimde tasarlanmıştır ve klasik CAPTCHA
+      çözümlerinin aksine ziyaretçi profili oluşturmaz.
+    </p>
+
+    <h3>2.3 Yönetim paneli için: iki zorunlu çerez</h3>
     <p>
       Yalnızca site yöneticisi <code>/admin</code> adresinden giriş yaptığında, teknik
       olarak zorunlu iki çerez kullanılır:
@@ -230,7 +255,7 @@ export function renderCookiePage() {
       çerezlerle hiçbir zaman karşılaşmaz.
     </p>
 
-    <h3>2.3 Altyapı kaynaklı çerezler</h3>
+    <h3>2.4 Altyapı kaynaklı çerezler</h3>
     <p>
       Sitemiz Cloudflare altyapısı üzerinde yayınlanmaktadır. Güvenlik ve bot koruması
       amacıyla, saldırı şüphesi gibi durumlarda Cloudflare tarafından teknik nitelikte
