@@ -201,7 +201,7 @@ export const SEO_DEFAULTS = {
  *
  * Ürünlerin başlık/açıklaması `content:products`'tan zaten geliyor; buradaki
  * alanlar yalnızca ARAMA MOTORU çıktısını özelleştirmek isteyen için var.
- * Hepsi boşsa `seo.js` ürünün kendi alanlarından otomatik Product şeması
+ * Hepsi boşsa `seo.js` ürünün kendi alanlarından otomatik Service şeması
  * üretir — yani bu doküman hiç oluşturulmasa da sayfa eksiksiz çalışır.
  */
 export const SEO_PRODUCT_DEFAULT = {

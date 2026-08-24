@@ -43,11 +43,11 @@ function absolute(url, origin) {
 }
 
 /**
- * Organization + her görünür ürün için Product şeması üretir.
+ * Organization + her görünür ürün için Service şeması üretir.
  *
  * Üç kademeli override mantığı:
  *   1. `seo:home.jsonLd` doluysa TÜM grafiği o değiştirir (tam kontrol).
- *   2. `seo:product:{id}.jsonLd` doluysa o ürünün Product bloğu onunla değişir.
+ *   2. `seo:product:{id}.jsonLd` doluysa o ürünün Service bloğu onunla değişir.
  *   3. Bölüm dokümanlarının (`seo:why-us`, `seo:services`, `seo:contact`)
  *      `jsonLd` alanı doluysa grafiğe ek blok olarak katılır.
  *
@@ -57,9 +57,14 @@ function absolute(url, origin) {
 export function buildJsonLd({ seo, contact, products, origin, assetVersion, seoSections, seoProducts }) {
   if (seo && seo.jsonLd) return seo.jsonLd;
 
+  // Service blokları sağlayıcıyı kopyalamak yerine bu kimliğe referans verir;
+  // böylece grafikte tek bir Organization düğümü olur.
+  const orgId = origin ? `${origin.replace(/\/$/, '')}#organization` : undefined;
+
   const organization = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': orgId,
     name: SITE_NAME,
     url: origin || undefined,
     logo: absolute(versionLocal('/images/logo-full.png', assetVersion), origin) || undefined,
@@ -108,14 +113,28 @@ export function buildJsonLd({ seo, contact, products, origin, assetVersion, seoS
       continue;
     }
 
+    // NEDEN Product DEĞİL Service:
+    // Google, Product şemasında zengin sonuç gösterebilmek için
+    // offers / review / aggregateRating alanlarından en az birini şart koşar
+    // ve Rich Results Test bunları bulamayınca "kritik sorun" veriyordu.
+    // Bu işletme B2B teklif/iletişim modeliyle çalışıyor: sabit fiyat da,
+    // gerçek puan da yok. Uydurma fiyat veya rating yazmak Google'ın
+    // yapılandırılmış veri politikalarını ihlal eder ve manuel eylem
+    // riski doğurur. Doğru tip Service'tir; Service bu alanları zorunlu
+    // kılmaz, sunulan hizmeti olduğu gibi tanımlar.
     graph.push({
       '@context': 'https://schema.org',
-      '@type': 'Product',
+      '@type': 'Service',
       name: p.name,
-      category: p.category || undefined,
+      // Kategori sitede görünen etiket ("TOPTAN TEDARİK"); hizmet türünün
+      // kendisi olduğu için serviceType'a birebir taşınıyor.
+      serviceType: p.category || p.name || undefined,
       description: p.description || undefined,
       image: p.imageUrl ? absolute(p.imageUrl, origin) : undefined,
-      brand: { '@type': 'Brand', name: SITE_NAME },
+      // origin bilinmiyorsa referans verilecek düğüm de yoktur; sağlayıcı
+      // askıda kalmasın diye asgari Organization gömülür.
+      provider: orgId ? { '@id': orgId } : { '@type': 'Organization', name: SITE_NAME },
+      areaServed: 'TR',
     });
   }
 

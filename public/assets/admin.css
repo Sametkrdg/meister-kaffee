@@ -207,6 +207,38 @@ code { font-family: var(--font-mono); font-size: 0.92em; }
 
 .field__textarea { resize: vertical; min-height: 84px; line-height: 1.55; }
 
+/* ---- Şifre göster/gizle -------------------------------------------------- */
+
+.field__pw { position: relative; display: block; }
+
+/* Metin düğmenin altına girmesin. */
+.field__pw .field__input { padding-right: 44px; }
+
+.pw-toggle {
+  position: absolute;
+  top: 50%;
+  right: 1px;
+  transform: translateY(-50%);
+  width: 40px;
+  height: calc(100% - 2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.pw-toggle:hover { color: var(--text-primary); }
+/* Alanın kendi çerçevesiyle çakışmasın diye odak halkası içeri alınır. */
+.pw-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -3px;
+}
+.pw-toggle svg { display: block; }
+
 .field__hint {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -230,7 +262,12 @@ code { font-family: var(--font-mono); font-size: 0.92em; }
   margin: 0;
   text-align: right;
 }
-.field__count--over { color: var(--error); }
+/* Hem üst hem alt sınır uyarısı aynı kırmızıyı kullanır; hangisi olduğunu
+   sayacın METNİ söyler ("sınırı aştı" / "çok kısa"). Ayrı bir turuncu ton
+   eklenmedi: palet nötr ve turuncu/amber, siteden bilinçli olarak çıkarılan
+   kahverengiye çok yakın duruyor (bkz. CLAUDE.md §Tasarım Token'ları). */
+.field__count--over,
+.field__count--short { color: var(--error); }
 
 /* ---- SEO panelinin alt sekmeleri ----------------------------------------- */
 

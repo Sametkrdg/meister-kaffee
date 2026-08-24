@@ -60,6 +60,105 @@
     return JSON.parse(JSON.stringify(value));
   }
 
+  /* ---- Şifre göster/gizle ------------------------------------------------ */
+
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+
+  /**
+   * Göz ikonu. `crossed` true ise üzeri çizili (şifre görünür durumdayken
+   * "gizle" anlamına gelir).
+   *
+   * innerHTML kullanılmıyor (dosya başındaki güvenlik notu); SVG düğümleri
+   * createElementNS ile kuruluyor.
+   */
+  function eyeIcon(crossed) {
+    var svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('width', '18');
+    svg.setAttribute('height', '18');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '1.6');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+
+    var outline = document.createElementNS(SVG_NS, 'path');
+    outline.setAttribute('d', 'M1.8 12S5.6 5.8 12 5.8 22.2 12 22.2 12 18.4 18.2 12 18.2 1.8 12 1.8 12Z');
+    svg.appendChild(outline);
+
+    var pupil = document.createElementNS(SVG_NS, 'circle');
+    pupil.setAttribute('cx', '12');
+    pupil.setAttribute('cy', '12');
+    pupil.setAttribute('r', '3');
+    svg.appendChild(pupil);
+
+    if (crossed) {
+      var slash = document.createElementNS(SVG_NS, 'path');
+      slash.setAttribute('d', 'M4 4l16 16');
+      svg.appendChild(slash);
+    }
+    return svg;
+  }
+
+  /**
+   * `.field__pw` sarmalayıcısındaki her şifre alanına göster/gizle düğmesi
+   * ekler. Hem giriş ekranında hem panelin HESAP sekmesinde kullanılır.
+   * Aynı alana iki kez düğme eklenmesin diye işaretlenir.
+   */
+  function enhancePasswordFields(root) {
+    (root || document).querySelectorAll('.field__pw').forEach(function (wrap) {
+      if (wrap.dataset.pwToggle === 'ready') return;
+
+      var input = wrap.querySelector('input');
+      if (!input) return;
+      wrap.dataset.pwToggle = 'ready';
+
+      var btn = document.createElement('button');
+      // type="button" ZORUNLU: form içinde varsayılan tip "submit"tir ve
+      // düğme giriş formunu göndermeye kalkardı.
+      btn.type = 'button';
+      btn.className = 'pw-toggle';
+
+      var paint = function () {
+        var shown = input.type === 'text';
+        btn.textContent = '';
+        btn.appendChild(eyeIcon(shown));
+        btn.setAttribute('aria-label', shown ? 'Şifreyi gizle' : 'Şifreyi göster');
+        btn.setAttribute('aria-pressed', shown ? 'true' : 'false');
+        btn.title = shown ? 'Şifreyi gizle' : 'Şifreyi göster';
+      };
+
+      btn.addEventListener('click', function () {
+        // ODAK DÜĞMEDE KALIR. Önce odağı input'a geri veriyorduk; ölçüldü:
+        // klavyeyle Space'e basınca odak input'a kaçtığı için ikinci kez
+        // Enter/Space basmak imkânsız hâle geliyordu ve ekran okuyucu
+        // aria-pressed değişimini duyuramıyordu (odak taşınınca düğmenin
+        // yeni durumu okunmaz).
+        var focused = document.activeElement === input;
+        var pos = focused ? input.selectionStart : null;
+
+        input.type = input.type === 'password' ? 'text' : 'password';
+        paint();
+
+        // Yalnızca odak zaten alandaysa imleci yerinde tut: type değişimi
+        // imleci sonuna atıyor.
+        if (focused) {
+          input.focus();
+          try {
+            if (pos !== null) input.setSelectionRange(pos, pos);
+          } catch (e) {
+            /* bazı tarayıcılar type değişiminden hemen sonra reddedebilir */
+          }
+        }
+      });
+
+      paint();
+      wrap.appendChild(btn);
+    });
+  }
+
   /**
    * Hata mesajını insan diline çevirir.
    *
@@ -83,6 +182,8 @@
   if (loginForm) {
     var loginStatus = document.getElementById('login-status');
     var loginBtn = loginForm.querySelector('button[type="submit"]');
+
+    enhancePasswordFields(loginForm);
 
     loginForm.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -192,17 +293,34 @@
     if (opts.placeholder) input.placeholder = opts.placeholder;
     if (opts.maxlength) input.maxLength = opts.maxlength;
 
-    // Karakter sayacı: arama sonuçlarında başlık ~60, açıklama ~160 karakterden
-    // sonra kırpılır. maxLength ile YAZMAYI ENGELLEMİYORUZ — bu bir tavsiye,
-    // kural değil; sınırı aşmak SEO'yu bozmaz, sadece kırpılmaya yol açar.
+    // Karakter sayacı. İki yönlü uyarı verir ama HİÇBİRİ ENGELLEMEZ — ikisi de
+    // tavsiye, kural değil:
+    //   ÜST sınır: arama sonuçlarında başlık ~60, açıklama ~160 karakterden
+    //     sonra kırpılır.
+    //   ALT sınır: LinkedIn Post Inspector og:description 100 karakterin
+    //     altındaysa uyarı veriyor (24 Ağustos 2026'da canlı sitede görüldü).
+    // `opts.counter` sayı ise yalnızca üst sınır; { max, min } ise ikisi de.
     var counter = null;
     if (opts.counter) {
+      var cmax = typeof opts.counter === 'number' ? opts.counter : opts.counter.max;
+      var cmin = typeof opts.counter === 'number' ? 0 : opts.counter.min || 0;
+
       counter = el('p', 'field__count');
       var paint = function () {
         var len = input.value.length;
-        counter.textContent = len + ' / ' + opts.counter + ' karakter';
-        counter.className =
-          'field__count' + (len > opts.counter ? ' field__count--over' : '');
+        var text = len + ' / ' + cmax + ' karakter';
+        var cls = 'field__count';
+
+        if (len > cmax) {
+          text += ' — sınırı aştı, arama sonucunda kırpılır';
+          cls += ' field__count--over';
+        } else if (cmin && len > 0 && len < cmin) {
+          text += ' — çok kısa, LinkedIn/OG için en az ' + cmin + ' karakter önerilir';
+          cls += ' field__count--short';
+        }
+
+        counter.textContent = text;
+        counter.className = cls;
       };
       paint();
       input.addEventListener('input', paint);
@@ -746,9 +864,11 @@
       field('META AÇIKLAMA', doc.metaDescription, function (v) { doc.metaDescription = v; }, {
         multiline: true,
         rows: 3,
-        counter: 160,
+        counter: { max: 160, min: 100 },
         maxlength: 320,
-        hint: 'Arama sonucunda başlığın altındaki gri metin.',
+        hint:
+          'Arama sonucunda başlığın altındaki gri metin. OG açıklaması boşsa ' +
+          'sosyal medya paylaşımlarında da bu kullanılır.',
       })
     );
 
@@ -766,11 +886,14 @@
     );
 
     card.appendChild(
+      // og:description doğrudan buradan gelir; LinkedIn'in 100 karakter
+      // uyarısını asıl tetikleyen alan budur.
       field('OG AÇIKLAMA', doc.ogDescription, function (v) { doc.ogDescription = v; }, {
         multiline: true,
-        rows: 2,
+        rows: 3,
+        counter: { max: 160, min: 100 },
         maxlength: 320,
-        hint: 'Boşsa meta açıklama kullanılır.',
+        hint: 'Sosyal medya paylaşımında görünen metin. Boşsa meta açıklama kullanılır.',
       })
     );
 
@@ -917,7 +1040,7 @@
           seoJsonCard(doc, {
             notice:
               'Doldurulursa sayfanın TÜM yapısal verisini bu değiştirir — ' +
-              'otomatik üretilen Organization ve Product blokları devre dışı kalır.',
+              'otomatik üretilen Organization ve Service blokları devre dışı kalır.',
           })
         );
       } else {
@@ -953,7 +1076,7 @@
       p.appendChild(
         seoJsonCard(pdoc, {
           notice:
-            'Doldurulursa bu ürün için otomatik üretilen Product bloğunun ' +
+            'Doldurulursa bu ürün için otomatik üretilen Service bloğunun ' +
             'yerine geçer. Boş bırakılırsa ürünün kendi alanlarından üretilir.',
         })
       );
@@ -1067,15 +1190,19 @@
   }
 
   function passwordInput(labelText, autocomplete) {
-    var wrap = el('label', 'field');
+    // Giriş ekranıyla aynı yapı: .field > .field__pw > input, düğmeyi
+    // enhancePasswordFields() ekler.
+    var wrap = el('div', 'field');
     wrap.appendChild(el('span', 'field__label', labelText));
 
+    var box = el('span', 'field__pw');
     var input = el('input', 'field__input');
     input.type = 'password';
     input.autocomplete = autocomplete;
     input.maxLength = 200;
 
-    wrap.appendChild(input);
+    box.appendChild(input);
+    wrap.appendChild(box);
     return { wrap: wrap, input: input };
   }
 
@@ -1098,6 +1225,10 @@
     var panel = BUILDERS[state.panel]();
     panel.dataset.active = 'true';
     app.appendChild(panel);
+
+    // HESAP sekmesindeki şifre alanlarına göster/gizle düğmesi ekle.
+    // Her render'da çağrılır; zaten işlenmiş alanlar atlanır.
+    enhancePasswordFields(panel);
 
     document.querySelectorAll('.tab').forEach(function (t) {
       t.setAttribute('aria-selected', t.dataset.panel === state.panel ? 'true' : 'false');

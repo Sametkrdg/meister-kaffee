@@ -48,11 +48,16 @@ export function renderLoginPage({ nextPath = '', configError = false, assetVersi
                autocomplete="username" autofocus maxlength="254">
       </label>
 
-      <label class="field">
-        <span class="field__label">ŞİFRE</span>
-        <input class="field__input" type="password" name="password" required
-               autocomplete="current-password" maxlength="200">
-      </label>
+      <!-- Göster/gizle düğmesi sunucuda basılmaz, admin.js ekler: JavaScript
+           yokken çalışmayacak bir düğme göstermek yanıltıcı olurdu. Sarmalayıcı
+           burada duruyor ki düğme eklendiğinde konumlanacak yeri hazır olsun. -->
+      <div class="field">
+        <label class="field__label" for="login-password">ŞİFRE</label>
+        <span class="field__pw">
+          <input class="field__input" id="login-password" type="password" name="password" required
+                 autocomplete="current-password" maxlength="200">
+        </span>
+      </div>
 
       <p class="alert" id="login-status" role="status" aria-live="polite"></p>
 
