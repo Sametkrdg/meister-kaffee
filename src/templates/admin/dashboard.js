@@ -7,7 +7,10 @@ import { escapeHtml } from '../../lib/validate.js';
  * Böylece panel her zaman KV'deki güncel hali gösterir ve kaydetme
  * sonrası sayfa yenilemeye gerek kalmaz.
  */
-export function renderDashboard({ session }) {
+import { asset } from '../../lib/assets.js';
+
+export function renderDashboard({ session, assetVersion }) {
+  const v = (path) => asset(path, assetVersion);
   const email = escapeHtml(session?.sub || '');
 
   return `<!DOCTYPE html>
@@ -17,15 +20,15 @@ export function renderDashboard({ session }) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Yönetim Paneli — Meister Kaffee-Rösterei</title>
   <meta name="robots" content="noindex, nofollow">
-  <link rel="icon" href="/images/favicon.png" type="image/png">
+  <link rel="icon" href="${v('/images/favicon.png')}" type="image/png">
   <meta name="theme-color" content="#FAF9F6">
   <meta name="color-scheme" content="light">
-  <link rel="stylesheet" href="/assets/admin.css">
+  <link rel="stylesheet" href="${v('/assets/admin.css')}">
 </head>
 <body class="admin">
   <header class="topbar">
     <div class="topbar__brand">
-      <img src="/images/logomark.png" alt="" width="242" height="354" class="topbar__mark">
+      <img src="${v('/images/logomark.png')}" alt="" width="242" height="354" class="topbar__mark">
       <span class="topbar__name">MEISTER</span>
       <span class="topbar__tag">YÖNETİM</span>
     </div>
@@ -41,7 +44,9 @@ export function renderDashboard({ session }) {
     <button class="tab" role="tab" data-panel="why" aria-selected="false">NEDEN BİZ</button>
     <button class="tab" role="tab" data-panel="products" aria-selected="false">HİZMETLER</button>
     <button class="tab" role="tab" data-panel="contact" aria-selected="false">İLETİŞİM</button>
+    <button class="tab" role="tab" data-panel="seo" aria-selected="false">SEO</button>
     <button class="tab" role="tab" data-panel="inbox" aria-selected="false">MESAJLAR</button>
+    <button class="tab" role="tab" data-panel="account" aria-selected="false">HESAP</button>
   </nav>
 
   <main class="wrap" id="app" aria-busy="true">
@@ -54,7 +59,7 @@ export function renderDashboard({ session }) {
     <button class="btn-admin" type="button" id="save">KAYDET</button>
   </div>
 
-  <script src="/assets/admin.js" defer></script>
+  <script src="${v('/assets/admin.js')}" defer></script>
 </body>
 </html>
 `;

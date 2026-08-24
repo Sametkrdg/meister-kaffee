@@ -1,4 +1,5 @@
 import { renderSeoHead } from '../lib/seo.js';
+import { asset } from '../lib/assets.js';
 
 /**
  * layout.js — sayfa kabuğu. <head> içindeki SEO bloğunu seo.js doldurur.
@@ -13,16 +14,18 @@ function renderGridOverlay() {
   return `  <div class="grid-overlay" aria-hidden="true">${'<span></span>'.repeat(12)}</div>`;
 }
 
-export function renderLayout({ seo, contact, products, origin, body }) {
+export function renderLayout({ seo, contact, products, origin, body, assetVersion, seoSections, seoProducts }) {
+  const v = (path) => asset(path, assetVersion);
+
   return `<!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  ${renderSeoHead({ seo, contact, products, origin })}
+  ${renderSeoHead({ seo, contact, products, origin, assetVersion, seoSections, seoProducts })}
 
-  <link rel="icon" href="/images/favicon.png" type="image/png">
-  <link rel="apple-touch-icon" href="/images/favicon.png">
+  <link rel="icon" href="${v('/images/favicon.png')}" type="image/png">
+  <link rel="apple-touch-icon" href="${v('/images/favicon.png')}">
 
   <!-- Mobil tarayıcı çubuğu sayfanın kâğıt tonuyla aynı olsun. Site tek
        temalıdır (açık); color-scheme, form alanı ve kaydırma çubuğu gibi
@@ -33,7 +36,7 @@ export function renderLayout({ seo, contact, products, origin, body }) {
   <link rel="preload" href="/fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/space-mono-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="${v('/assets/main.css')}">
 
   <!-- Turnstile (bot koruması). CSP'de challenges.cloudflare.com izinli
        olmalıdır — bkz. functions/_middleware.js -->
@@ -43,7 +46,7 @@ export function renderLayout({ seo, contact, products, origin, body }) {
   <a class="skip-link" href="#neden-biz">İçeriğe geç</a>
 ${renderGridOverlay()}
 ${body}
-  <script src="/assets/main.js" defer></script>
+  <script src="${v('/assets/main.js')}" defer></script>
 </body>
 </html>
 `;

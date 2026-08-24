@@ -5,9 +5,13 @@
  */
 
 import { renderDashboard } from '../../src/templates/admin/dashboard.js';
+import { resolveAssetVersion } from '../../src/lib/assets.js';
 
 export async function onRequestGet(context) {
-  const html = renderDashboard({ session: context.data?.session });
+  const html = renderDashboard({
+    session: context.data?.session,
+    assetVersion: resolveAssetVersion(context.env),
+  });
 
   return new Response(html, {
     headers: {

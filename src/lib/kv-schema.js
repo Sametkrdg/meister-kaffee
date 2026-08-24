@@ -196,6 +196,33 @@ export const SEO_DEFAULTS = {
   },
 };
 
+/**
+ * Ürün SEO dokümanının boş şablonu.
+ *
+ * Ürünlerin başlık/açıklaması `content:products`'tan zaten geliyor; buradaki
+ * alanlar yalnızca ARAMA MOTORU çıktısını özelleştirmek isteyen için var.
+ * Hepsi boşsa `seo.js` ürünün kendi alanlarından otomatik Product şeması
+ * üretir — yani bu doküman hiç oluşturulmasa da sayfa eksiksiz çalışır.
+ */
+export const SEO_PRODUCT_DEFAULT = {
+  pageTitle: '',
+  metaDescription: '',
+  ogTitle: '',
+  ogDescription: '',
+  ogImage: '',
+  canonical: '',
+  jsonLd: null,
+};
+
+/**
+ * Tek sayfalık sitede aynı anda kaç ürünün SEO dokümanı okunacağının sınırı.
+ *
+ * Workers ücretsiz planında istek başına 50 alt-istek var; ana sayfa zaten
+ * 5 KV okuması yapıyor. Bu sınır, ürün listesi büyüdüğünde bütçenin sessizce
+ * tükenmesini engeller.
+ */
+export const SEO_PRODUCT_READ_LIMIT = 20;
+
 /* ---- Okuma / yazma yardımcıları ------------------------------------------ */
 
 /**
@@ -218,21 +245,70 @@ export async function writeDoc(kv, key, value) {
   await kv.put(key, JSON.stringify(value));
 }
 
-/** Ana sayfanın ihtiyaç duyduğu tüm içerik dokümanlarını paralel okur. */
+/**
+ * Bölüm SEO dokümanlarını (home hariç) okur.
+ *
+ * Bunların yalnızca `jsonLd` alanı canlı sayfaya çıkar: site tek sayfa
+ * olduğu için `<title>`/meta etiketleri sadece `seo:home`'dan üretilebilir
+ * (bkz. src/lib/seo.js). Diğer alanlar bölümler ileride kendi sayfalarına
+ * ayrılırsa kullanılmak üzere saklanır.
+ */
+export async function readSeoSections(kv) {
+  const names = SEO_SECTIONS.filter((s) => s !== 'home');
+  const docs = await Promise.all(
+    names.map((s) => readDoc(kv, KEYS.seo(s), SEO_DEFAULTS[s] || SEO_PRODUCT_DEFAULT))
+  );
+
+  const out = {};
+  names.forEach((name, i) => {
+    out[name] = docs[i];
+  });
+  return out;
+}
+
+/** Verilen ürün id'leri için `seo:product:{id}` dokümanlarını okur. */
+export async function readSeoProducts(kv, ids) {
+  const wanted = (Array.isArray(ids) ? ids : []).filter(Boolean).slice(0, SEO_PRODUCT_READ_LIMIT);
+  if (wanted.length === 0) return {};
+
+  const docs = await Promise.all(
+    wanted.map((id) => readDoc(kv, KEYS.seoProduct(id), SEO_PRODUCT_DEFAULT))
+  );
+
+  const out = {};
+  wanted.forEach((id, i) => {
+    out[id] = docs[i];
+  });
+  return out;
+}
+
+/**
+ * Ana sayfanın ihtiyaç duyduğu tüm içerik dokümanlarını okur.
+ *
+ * KV okuma sayısı: 5 sabit + 3 bölüm SEO + görünür ürün sayısı. Bu maliyet
+ * her ziyaretçide değil, PoP başına dakikada bir doğar: `functions/index.js`
+ * HTML'i `s-maxage=60, stale-while-revalidate=600` ile servis eder.
+ */
 export async function readSiteContent(kv) {
-  const [hero, whyUs, products, contact, seoHome] = await Promise.all([
+  const [hero, whyUs, products, contact, seoHome, seoSections] = await Promise.all([
     readDoc(kv, KEYS.hero),
     readDoc(kv, KEYS.whyUs),
     readDoc(kv, KEYS.products),
     readDoc(kv, KEYS.contact),
     readDoc(kv, KEYS.seo('home'), SEO_DEFAULTS.home),
+    readSeoSections(kv),
   ]);
 
   const visible = (Array.isArray(products) ? products : [])
     .filter((p) => p && p.visible !== false)
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-  return { hero, whyUs, products: visible, contact, seo: seoHome };
+  const seoProducts = await readSeoProducts(
+    kv,
+    visible.map((p) => p && p.id)
+  );
+
+  return { hero, whyUs, products: visible, contact, seo: seoHome, seoSections, seoProducts };
 }
 
 /* ---- İletişim formu kayıtları -------------------------------------------- */

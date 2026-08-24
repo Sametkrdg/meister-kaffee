@@ -74,7 +74,8 @@ meister-kaffee-roesterei/
 │   │       ├── login.js             # POST /api/admin/login
 │   │       ├── logout.js            # POST /api/admin/logout
 │   │       ├── content.js           # GET/PUT /api/admin/content  (contact info, links, products)
-│   │       └── seo.js               # GET/PUT /api/admin/seo      (per-section SEO + JSON-LD)
+│   │       ├── seo.js               # GET/PUT /api/admin/seo      (per-section SEO + JSON-LD)
+│   │       └── password.js          # POST /api/admin/password   (iki adimli sifre degistirme)
 │   └── admin/
 │       ├── _middleware.js           # auth guard for everything under /admin/*
 │       ├── login.js                 # GET /admin/login  → renders login screen
@@ -181,6 +182,25 @@ meister-kaffee-roesterei/
 7. Validate structured data with Google's Rich Results Test and the Open Graph debugger against the live URL.
 8. Final Lighthouse pass (Performance / SEO / Best Practices / Accessibility) after all Phase 4 additions; fix any regression before sign-off.
 9. **Launch checklist:** custom domain live over HTTPS; sitemap submitted in Search Console; seed admin password rotated to a real one via the dashboard; `.dev.vars` confirmed absent from the deployed environment; production secrets confirmed set only in the Pages dashboard.
+
+
+> **Durum (24 Agustos 2026) — Faz 4 tamamlandi.**
+> Yapilanlar: 1-6 maddeleri kodda; `functions/api/admin/seo.js` + panelde SEO
+> sekmesi (bolum/urun alt sekmeleri, 60/160 karakter sayaci, JSON-LD ham
+> duzenleme + canli dogrulama), `functions/api/admin/password.js` + HESAP
+> sekmesi (roadmap cikis listesi madde 9: "sifre panelden degistirilebilsin").
+> Olculen sonuclar: Lighthouse SEO/Erisilebilirlik/En-Iyi-Uygulamalar
+> **100/100/100**, basarisiz denetim yok; JSON-LD yapisal dogrulamasi hatasiz.
+>
+> **Not (roadmap varsayimindan sapma):** site tek sayfa oldugu icin
+> `seo:why-us` / `seo:services` / `seo:contact` / `seo:product:{id}`
+> dokumanlarinin baslik ve aciklama alanlari sayfaya YANSIMAZ; bu
+> dokumanlardan canliya cikan tek alan `jsonLd`'dir. Alanlar ileride bolumler
+> kendi sayfalarina ayrilirsa diye korunuyor, panel bunu her sekmede yaziyor.
+>
+> **Kullaniciya kalan manuel adimlar:** Search Console'a sitemap gonderimi,
+> Google Rich Results Test ve Open Graph debugger'in canli URL uzerinde
+> calistirilmasi, HSTS preload listesine basvuru.
 
 ---
 

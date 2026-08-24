@@ -5,6 +5,7 @@
  */
 
 import { renderLoginPage } from '../../src/templates/admin/login.js';
+import { resolveAssetVersion } from '../../src/lib/assets.js';
 import { resolveSession } from '../../src/lib/admin-guard.js';
 
 export async function onRequestGet(context) {
@@ -22,6 +23,7 @@ export async function onRequestGet(context) {
   const html = renderLoginPage({
     nextPath: url.searchParams.get('devam') || '',
     configError: url.searchParams.get('hata') === 'yapilandirma',
+    assetVersion: resolveAssetVersion(env),
   });
 
   return new Response(html, {

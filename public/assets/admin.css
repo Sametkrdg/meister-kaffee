@@ -218,6 +218,50 @@ code { font-family: var(--font-mono); font-size: 0.92em; }
 .field--invalid .field__input,
 .field--invalid .field__textarea { border-color: var(--error); }
 
+.field__hint--ok { color: var(--ok); }
+.field__hint--error { color: var(--error); }
+
+/* Karakter sayacı — sınır aşıldığında uyarır ama yazmayı engellemez. */
+.field__count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+  margin: 0;
+  text-align: right;
+}
+.field__count--over { color: var(--error); }
+
+/* ---- SEO panelinin alt sekmeleri ----------------------------------------- */
+
+.subtabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border: 1px solid var(--line);
+  overflow-x: auto;
+}
+
+.subtab {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  padding: 11px 16px;
+  background: transparent;
+  color: var(--text-faint);
+  border: 0;
+  border-right: 1px solid var(--line);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.subtab:last-child { border-right: 0; }
+.subtab:hover { background: rgba(28, 27, 26, 0.04); color: var(--text-primary); }
+.subtab[aria-current="true"] {
+  background: var(--accent);
+  color: var(--bg-primary);
+}
+
 /* Onay kutusu — tarayıcı varsayılanı yerine marka rengi */
 .field--check { flex-direction: row; align-items: center; gap: 10px; }
 .field--check input[type="checkbox"] {

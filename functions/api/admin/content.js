@@ -91,21 +91,26 @@ export async function onRequestPut(context) {
   // Her alan validate.js'den geçer — stored-XSS önlemi zorunludur.
   const writes = [];
   const updated = [];
+  const saved = {};
 
   if (payload.hero !== undefined) {
-    writes.push(writeDoc(env.CONTENT_KV, KEYS.hero, validateHero(payload.hero)));
+    saved.hero = validateHero(payload.hero);
+    writes.push(writeDoc(env.CONTENT_KV, KEYS.hero, saved.hero));
     updated.push('hero');
   }
   if (payload.whyUs !== undefined) {
-    writes.push(writeDoc(env.CONTENT_KV, KEYS.whyUs, validateWhyUs(payload.whyUs)));
+    saved.whyUs = validateWhyUs(payload.whyUs);
+    writes.push(writeDoc(env.CONTENT_KV, KEYS.whyUs, saved.whyUs));
     updated.push('why-us');
   }
   if (payload.products !== undefined) {
-    writes.push(writeDoc(env.CONTENT_KV, KEYS.products, validateProducts(payload.products)));
+    saved.products = validateProducts(payload.products);
+    writes.push(writeDoc(env.CONTENT_KV, KEYS.products, saved.products));
     updated.push('products');
   }
   if (payload.contact !== undefined) {
-    writes.push(writeDoc(env.CONTENT_KV, KEYS.contact, validateContactInfo(payload.contact)));
+    saved.contact = validateContactInfo(payload.contact);
+    writes.push(writeDoc(env.CONTENT_KV, KEYS.contact, saved.contact));
     updated.push('contact');
   }
 
@@ -122,7 +127,11 @@ export async function onRequestPut(context) {
 
   const meta = await touchMeta(env.CONTENT_KV, data?.session?.sub || null);
 
-  return jsonResponse({ ok: true, updated, meta });
+  // Doğrulanmış (temizlenmiş) hâli geri döndürülür ki panel kaydettikten
+  // sonra ayrı bir GET atmak zorunda kalmasın. Cloudflare WAF kuralı
+  // /api/* için IP başına 5 istek / 10 saniyeye izin veriyor; panelde bir
+  // kaydetme işlemi 3 istek harcarsa peş peşe iki işlem sınırı aşıyordu.
+  return jsonResponse({ ok: true, updated, meta, data: saved });
 }
 
 export async function onRequest(context) {

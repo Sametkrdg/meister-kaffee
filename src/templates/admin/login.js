@@ -4,7 +4,10 @@ import { escapeHtml } from '../../lib/validate.js';
  * Admin giriş ekranı. Sitenin tasarım token'larını kullanır ama public
  * main.css'i yüklemez — panelin kendi (çok daha küçük) admin.css'i vardır.
  */
-export function renderLoginPage({ nextPath = '', configError = false } = {}) {
+import { asset } from '../../lib/assets.js';
+
+export function renderLoginPage({ nextPath = '', configError = false, assetVersion } = {}) {
+  const v = (path) => asset(path, assetVersion);
   const next = escapeHtml(nextPath || '');
 
   return `<!DOCTYPE html>
@@ -14,15 +17,15 @@ export function renderLoginPage({ nextPath = '', configError = false } = {}) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Yönetim Girişi — Meister Kaffee-Rösterei</title>
   <meta name="robots" content="noindex, nofollow">
-  <link rel="icon" href="/images/favicon.png" type="image/png">
+  <link rel="icon" href="${v('/images/favicon.png')}" type="image/png">
   <meta name="theme-color" content="#FAF9F6">
   <meta name="color-scheme" content="light">
-  <link rel="stylesheet" href="/assets/admin.css">
+  <link rel="stylesheet" href="${v('/assets/admin.css')}">
 </head>
 <body class="auth">
   <main class="auth__card">
     <div class="auth__brand">
-      <img src="/images/logomark.png" alt="" width="242" height="354" class="auth__mark">
+      <img src="${v('/images/logomark.png')}" alt="" width="242" height="354" class="auth__mark">
       <p class="auth__name">MEISTER</p>
       <p class="auth__sub">KAFFEE-RÖSTEREİ</p>
     </div>
@@ -57,7 +60,7 @@ export function renderLoginPage({ nextPath = '', configError = false } = {}) {
     </form>
   </main>
 
-  <script src="/assets/admin.js" defer></script>
+  <script src="${v('/assets/admin.js')}" defer></script>
 </body>
 </html>
 `;

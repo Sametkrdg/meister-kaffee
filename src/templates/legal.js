@@ -12,10 +12,12 @@
  * kaynak taslakla birlikte tutulur.
  */
 
+import { asset } from '../lib/assets.js';
+
 const UPDATED = '22 Ağustos 2026';
 const CONTACT = 'halitcenat@meisterkaffee.com.tr';
 
-function shell({ title, description, slug, body }) {
+function shell({ title, description, slug, body, assetVersion }) {
   return `<!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -25,11 +27,11 @@ function shell({ title, description, slug, body }) {
   <meta name="description" content="${description}">
   <link rel="canonical" href="https://meisterkaffee.com.tr/${slug}">
 
-  <link rel="icon" href="/images/favicon.png" type="image/png">
+  <link rel="icon" href="${asset('/images/favicon.png', assetVersion)}" type="image/png">
   <meta name="theme-color" content="#FAF9F6">
   <meta name="color-scheme" content="light">
   <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="${asset('/assets/main.css', assetVersion)}">
 </head>
 <body>
   <main class="legal">
@@ -55,7 +57,7 @@ ${body}
 
 /* ---- KVKK Aydınlatma Metni ------------------------------------------------ */
 
-export function renderKvkkPage() {
+export function renderKvkkPage(assetVersion) {
   const body = `
     <p class="legal__lead">
       6698 sayılı Kişisel Verilerin Korunması Kanunu (&ldquo;KVKK&rdquo;) uyarınca kişisel
@@ -174,7 +176,7 @@ export function renderKvkkPage() {
     </ul>
   `;
 
-  return shell({
+  return shell({ assetVersion,
     title: 'KVKK Aydınlatma Metni',
     description:
       'Meister Kaffee-Rösterei iletişim formu aracılığıyla toplanan kişisel verilerin ' +
@@ -186,7 +188,7 @@ export function renderKvkkPage() {
 
 /* ---- Çerez Politikası ----------------------------------------------------- */
 
-export function renderCookiePage() {
+export function renderCookiePage(assetVersion) {
   const body = `
     <p class="legal__lead">
       <strong>Bu sitede ziyaretçi takibi yapılmamaktadır.</strong> Google Analytics,
@@ -290,7 +292,7 @@ export function renderCookiePage() {
     </p>
   `;
 
-  return shell({
+  return shell({ assetVersion,
     title: 'Çerez Politikası',
     description:
       'Meister Kaffee-Rösterei çerez politikası: ziyaretçi takibi yapılmaz, herkese açık ' +

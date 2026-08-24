@@ -16,13 +16,14 @@ import { renderFooter } from '../templates/footer.js';
 /**
  * @param {object} content kv-schema.readSiteContent() çıktısı
  * @param {string} origin  isteğin origin'i (mutlak OG/canonical URL için)
+ * @param {string} assetVersion statik varlık sürüm damgası (bkz. lib/assets.js)
  * @returns {string} tam HTML belgesi
  */
-export function renderHomePage(content, origin) {
-  const { hero, whyUs, products, contact, seo } = content;
+export function renderHomePage(content, origin, assetVersion) {
+  const { hero, whyUs, products, contact, seo, seoSections, seoProducts } = content;
 
   const body = [
-    renderNav({ hero }),
+    renderNav({ hero, assetVersion }),
     '<main class="page">',
     renderHero({ hero, contact }),
     renderMarquee({ whyUs }),
@@ -34,5 +35,5 @@ export function renderHomePage(content, origin) {
     renderFooter(),
   ].join('\n');
 
-  return renderLayout({ seo, contact, products, origin, body });
+  return renderLayout({ seo, contact, products, origin, body, assetVersion, seoSections, seoProducts });
 }

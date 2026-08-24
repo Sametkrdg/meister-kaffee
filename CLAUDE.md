@@ -81,7 +81,7 @@ src/lib/            kv-schema.js, render.js, seo.js, auth.js, validate.js
 functions/          Cloudflare Pages Functions (routing = dosya yolu)
   index.js          GET /  → edge-SSR ana sayfa
   api/contact.js    POST /api/contact
-  api/admin/*        login, logout, content, seo endpoint'leri
+  api/admin/*        login, logout, content, seo, password endpoint'leri
   admin/_middleware.js  /admin/* için auth guard — TEK auth kontrol noktası
 scripts/seed-kv.mjs  yerel: admin şifresini hashleyip KV'yi ilk kez doldurur
 scripts/build-logo.mjs yerel: meisterkaffee/*.svg → public/images/*.png|jpg (tek seferlik)
@@ -140,7 +140,38 @@ Build adımı yoktur (framework/bundler yok) — `wrangler pages dev` / `deploy`
   değişkenindedir; KV sızsa bile sözlük denemesi yapılamaz.
   `PASSWORD_PEPPER` değişirse TÜM şifreler geçersiz olur, seed yeniden çalıştırılmalı.
 - **Kullanıcı girdisi (contact formu + admin içerik alanları) `src/lib/validate.js`'den geçmeden render'a veya KV'ye yazılmaz.** İçerik server-side HTML'e enjekte edildiği için stored-XSS riski gerçektir, opsiyonel değildir.
+- **Statik varlık URL'lerini şablonlara elle yazma — `src/lib/assets.js`'ten geçir.**
+  `public/_headers` CSS/JS'yi 1 gün, görselleri 30 gün cache'liyor ve dosya
+  adlarında içerik hash'i yok (build adımı olmadığı için üretilemiyor). Sürüm
+  damgası olmadan yeni bir deploy yayına çıkmaz: 22 Ağustos 2026'da ölçüldü —
+  HTML güncelken `/assets/main.css` hâlâ eskiydi (`cf-cache-status: HIT`,
+  `Age: 82482`). Cloudflare purge'ü kenar önbelleğini temizler ama
+  **tarayıcı önbelleğine ulaşamaz**; tek çözüm URL'in değişmesidir.
+  Yeni bir CSS/JS/görsel referansı eklerken `asset(path, assetVersion)`
+  kullan; `assetVersion` route'ta `resolveAssetVersion(env)` ile üretilir
+  (kaynağı `CF_PAGES_COMMIT_SHA`).
+  **Fontlar bilinçli olarak sürümsüzdür:** içerikleri değişmiyor ve
+  `<link rel="preload">` ile CSS'teki `url()` birebir aynı olmalı, aksi halde
+  font iki kez indirilir.
 - **SEO alanlarını (`seo:*` KV dokümanları) elle `functions/index.js` içine gömme** — her zaman `src/lib/seo.js` üzerinden üret, tek kaynak orası olsun.
+- **Site TEK SAYFA: yalnızca `seo:home`'un meta etiketleri yayına çıkar.**
+  `seo:why-us`, `seo:services`, `seo:contact` ve `seo:product:{id}`
+  dokümanlarından canlı sayfaya çıkan tek alan `jsonLd`'dir; başlık/açıklama
+  alanları bölümler ileride kendi sayfalarına ayrılırsa kullanılmak üzere
+  saklanır. Panel bunu her bölüm sekmesinde açıkça yazar — bu uyarıyı
+  kaldırmayın, aksi halde yönetici yansımayan alanları doldurur.
+  JSON-LD öncelik sırası: `seo:home.jsonLd` TÜM grafiği değiştirir →
+  `seo:product:{id}.jsonLd` o ürünün bloğunun yerine geçer → bölüm
+  dokümanlarının `jsonLd`'si grafiğe eklenir.
+- **Şifre değiştirme İKİ istekte yapılır** (`functions/api/admin/password.js`):
+  `dogrula` → `uygula`. Tek istekte hem doğrulama hem hash'leme 100.000
+  PBKDF2 iterasyonu eder ve Workers CPU limitini ~6 istekte 1 aşar
+  (bkz. PBKDF2 kuralı). Bunu tek adıma indirmeyin.
+- **Admin API'leri yazma işleminden sonra DOĞRULANMIŞ veriyi geri döndürür**
+  (`content` ve `seo` endpoint'leri). Panel bu yüzden kaydettikten sonra
+  yeniden GET atmaz. Bu bir optimizasyon değil, hız sınırı gereğidir:
+  ölçüldü — panel açılışı 1, SEO sekmesi 1, kaydetme 2 istek; toplam 4,
+  WAF sınırı 5. Kaydetmeden sonra yeniden okuma eklerseniz sınır aşılır.
 - **KV şeması değişirse** (`content:*`, `seo:*`, `admin:*` anahtarları) hem `src/lib/kv-schema.js` hem de roadmap dosyasındaki §3 tablosu güncellenmeli — ikisi birbirinden sapmamalı.
 - **Yeni bir bağımlılık/paket eklemeden önce dur:** proje sıfır bütçe + minimal toolchain prensibiyle kurulu; bir framework, ORM, veya ücretli SDK eklemek mimari kararı bozar.
 - **Hız sınırı Cloudflare WAF kuralındadır, kodda değil:** `/api/` ile başlayan tüm

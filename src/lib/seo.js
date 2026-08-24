@@ -7,6 +7,7 @@
  */
 
 import { escapeHtml } from './validate.js';
+import { asset } from './assets.js';
 
 const SITE_NAME = 'Meister Kaffee-Rösterei';
 
@@ -21,6 +22,18 @@ function safeJsonLd(value) {
     .replace(/&/g, '\\u0026');
 }
 
+const OG_DEFAULT = '/images/og-default.jpg';
+
+/**
+ * Yalnizca kendi origin'imizdeki (kok-goreli) yollara surum damgasi ekler.
+ * Zaten sorgu tasiyan veya harici (http/https) bir URL degistirilmez.
+ */
+function versionLocal(url, assetVersion) {
+  if (typeof url !== 'string' || !url.startsWith('/')) return url;
+  if (url.includes('?')) return url;
+  return asset(url, assetVersion);
+}
+
 /** Göreli yolu mutlak URL'e çevirir (OG/canonical mutlak adres ister). */
 function absolute(url, origin) {
   if (!url) return '';
@@ -31,9 +44,17 @@ function absolute(url, origin) {
 
 /**
  * Organization + her görünür ürün için Product şeması üretir.
- * `seo:home` içinde jsonLd override'ı varsa o kullanılır.
+ *
+ * Üç kademeli override mantığı:
+ *   1. `seo:home.jsonLd` doluysa TÜM grafiği o değiştirir (tam kontrol).
+ *   2. `seo:product:{id}.jsonLd` doluysa o ürünün Product bloğu onunla değişir.
+ *   3. Bölüm dokümanlarının (`seo:why-us`, `seo:services`, `seo:contact`)
+ *      `jsonLd` alanı doluysa grafiğe ek blok olarak katılır.
+ *
+ * Hepsi `validate.js`'teki `validateJsonLd`'den geçmiş, parse edilebilir
+ * nesnelerdir; buraya bozuk bir değer ulaşamaz.
  */
-export function buildJsonLd({ seo, contact, products, origin }) {
+export function buildJsonLd({ seo, contact, products, origin, assetVersion, seoSections, seoProducts }) {
   if (seo && seo.jsonLd) return seo.jsonLd;
 
   const organization = {
@@ -41,7 +62,7 @@ export function buildJsonLd({ seo, contact, products, origin }) {
     '@type': 'Organization',
     name: SITE_NAME,
     url: origin || undefined,
-    logo: absolute('/images/logo-full.png', origin) || undefined,
+    logo: absolute(versionLocal('/images/logo-full.png', assetVersion), origin) || undefined,
     description: seo?.metaDescription || undefined,
   };
 
@@ -72,7 +93,21 @@ export function buildJsonLd({ seo, contact, products, origin }) {
 
   const graph = [organization];
 
+  // Bölüm dokümanlarının ek blokları
+  for (const doc of Object.values(seoSections || {})) {
+    if (!doc || !doc.jsonLd) continue;
+    if (Array.isArray(doc.jsonLd)) graph.push(...doc.jsonLd);
+    else graph.push(doc.jsonLd);
+  }
+
   for (const p of products || []) {
+    const override = p && p.id ? seoProducts?.[p.id]?.jsonLd : null;
+    if (override) {
+      if (Array.isArray(override)) graph.push(...override);
+      else graph.push(override);
+      continue;
+    }
+
     graph.push({
       '@context': 'https://schema.org',
       '@type': 'Product',
@@ -91,15 +126,19 @@ export function buildJsonLd({ seo, contact, products, origin }) {
  * <head> içine girecek SEO bloğunu üretir.
  * @returns {string} HTML
  */
-export function renderSeoHead({ seo, contact, products, origin }) {
+export function renderSeoHead({ seo, contact, products, origin, assetVersion, seoSections, seoProducts }) {
   const title = seo?.pageTitle || SITE_NAME;
   const description = seo?.metaDescription || '';
   const ogTitle = seo?.ogTitle || title;
   const ogDescription = seo?.ogDescription || description;
-  const ogImage = absolute(seo?.ogImage || '/images/og-default.jpg', origin);
+  // OG görseli kendi origin'imizdeyse sürümlenir: sosyal ağlar görseli URL'e
+  // göre önbelleğe alır, sürüm damgası olmadan görsel değiştiğinde eski kopya
+  // paylaşımlarda görünmeye devam eder. Harici bir URL girilmişse dokunulmaz —
+  // sorgu eklemek yabancı bir sunucuda görseli bozabilir.
+  const ogImage = absolute(versionLocal(seo?.ogImage || OG_DEFAULT, assetVersion), origin);
   const canonical = seo?.canonical || origin || '';
 
-  const jsonLd = buildJsonLd({ seo, contact, products, origin });
+  const jsonLd = buildJsonLd({ seo, contact, products, origin, assetVersion, seoSections, seoProducts });
 
   const tags = [
     `<title>${escapeHtml(title)}</title>`,

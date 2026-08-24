@@ -197,6 +197,50 @@ export function validateSeoDoc(input) {
 }
 
 /**
+ * Panelden gelen ham JSON-LD metnini AÇIKLAYICI hatayla doğrular.
+ *
+ * `validateJsonLd` bozuk girdiyi sessizce `null`'a çevirir — canlı sayfa için
+ * doğru davranış (bozuk şema yayına çıkmaz) ama panel için yanlış: yönetici
+ * kaydettiğini sanıp veriyi kaybederdi. Bu yüzden admin API'si önce buradan
+ * geçer ve bozuk girdide kaydı REDDEDER.
+ *
+ * @param {unknown} value ham metin veya nesne
+ * @returns {{ ok: boolean, value?: object|array|null, error?: string }}
+ */
+export function parseJsonLdInput(value) {
+  if (value === null || value === undefined) return { ok: true, value: null };
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return { ok: true, value: null };
+
+    let parsed;
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch (error) {
+      return { ok: false, error: `Geçersiz JSON: ${error.message}` };
+    }
+    if (parsed === null) return { ok: true, value: null };
+    if (typeof parsed !== 'object') {
+      return { ok: false, error: 'JSON-LD bir nesne veya dizi olmalı.' };
+    }
+    if (JSON.stringify(parsed).length > 20000) {
+      return { ok: false, error: 'JSON-LD çok büyük (en fazla 20.000 karakter).' };
+    }
+    return { ok: true, value: parsed };
+  }
+
+  if (typeof value === 'object') {
+    if (JSON.stringify(value).length > 20000) {
+      return { ok: false, error: 'JSON-LD çok büyük (en fazla 20.000 karakter).' };
+    }
+    return { ok: true, value };
+  }
+
+  return { ok: false, error: 'JSON-LD bir nesne veya dizi olmalı.' };
+}
+
+/**
  * JSON-LD override'ını doğrular. Hatalı bir düzenlemenin canlı sayfayı
  * bozmaması için: parse edilemiyorsa null döner (varsayılan şema kullanılır).
  * @returns {object|array|null}

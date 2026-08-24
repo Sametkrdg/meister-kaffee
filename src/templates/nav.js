@@ -1,4 +1,5 @@
 import { escapeHtml } from '../lib/validate.js';
+import { asset } from '../lib/assets.js';
 
 /**
  * Sticky üst menü. Bağlantılar monospace ile dizilir.
@@ -14,7 +15,7 @@ const LINKS = [
   { label: 'İLETİŞİM', href: '#iletisim' },
 ];
 
-export function renderNav({ hero }) {
+export function renderNav({ hero, assetVersion }) {
   const ctaLabel = escapeHtml(hero?.ctaLabel || 'BİZİMLE İLETİŞİME GEÇ');
 
   const links = LINKS.map(
@@ -23,8 +24,12 @@ export function renderNav({ hero }) {
 
   return `
   <header class="nav">
-    <a class="brand" href="#top" aria-label="Meister Kaffee-Rösterei ana sayfa">
-      <img class="brand__mark" src="/images/logomark.png" alt="" width="242" height="354" aria-hidden="true">
+    <!-- aria-label, GÖRÜNEN metni birebir içermek zorunda (WCAG 2.5.3
+         "Label in Name"): içerideki yazı "MEISTER" + "KAFFEE-RÖSTEREİ".
+         Farklı yazılırsa sesli okuyucu adı ile ekrandaki ad ayrışır ve
+         sesle komut veren kullanıcı bağlantıyı adlandıramaz. -->
+    <a class="brand" href="#top" aria-label="MEISTER KAFFEE-RÖSTEREİ — ana sayfa">
+      <img class="brand__mark" src="${asset('/images/logomark.png', assetVersion)}" alt="" width="242" height="354" aria-hidden="true">
       <span class="brand__text">
         <span class="brand__name">MEISTER</span>
         <span class="brand__sub">KAFFEE-RÖSTEREİ</span>

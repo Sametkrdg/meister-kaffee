@@ -133,7 +133,14 @@
   var saveBtn = document.getElementById('save');
   var discardBtn = document.getElementById('discard');
 
-  var state = { server: null, draft: null, panel: 'hero' };
+  var state = {
+    server: null,
+    draft: null,
+    panel: 'hero',
+    // SEO ayrı yüklenir (bkz. SEO paneli); loading bayrağı aynı anda iki
+    // istek gitmesini engeller.
+    seo: { server: null, draft: null, productIndex: [], sub: 's:home', loading: false, error: '' },
+  };
 
   var ICONS = [
     { value: 'roaster', label: 'Kavurma makinesi' },
@@ -142,8 +149,12 @@
     { value: 'leaf', label: 'Yaprak / sürdürülebilirlik' },
   ];
 
+  function contentDirty() {
+    return !!state.server && JSON.stringify(state.server) !== JSON.stringify(state.draft);
+  }
+
   function isDirty() {
-    return state.server && JSON.stringify(state.server) !== JSON.stringify(state.draft);
+    return contentDirty() || seoDirty();
   }
 
   function refreshSavebar(message, kind) {
@@ -181,12 +192,29 @@
     if (opts.placeholder) input.placeholder = opts.placeholder;
     if (opts.maxlength) input.maxLength = opts.maxlength;
 
+    // Karakter sayacı: arama sonuçlarında başlık ~60, açıklama ~160 karakterden
+    // sonra kırpılır. maxLength ile YAZMAYI ENGELLEMİYORUZ — bu bir tavsiye,
+    // kural değil; sınırı aşmak SEO'yu bozmaz, sadece kırpılmaya yol açar.
+    var counter = null;
+    if (opts.counter) {
+      counter = el('p', 'field__count');
+      var paint = function () {
+        var len = input.value.length;
+        counter.textContent = len + ' / ' + opts.counter + ' karakter';
+        counter.className =
+          'field__count' + (len > opts.counter ? ' field__count--over' : '');
+      };
+      paint();
+      input.addEventListener('input', paint);
+    }
+
     input.addEventListener('input', function () {
       onInput(input.value);
       touched();
     });
 
     wrap.appendChild(input);
+    if (counter) wrap.appendChild(counter);
     if (opts.hint) wrap.appendChild(el('p', 'field__hint', opts.hint));
     return wrap;
   }
@@ -380,6 +408,15 @@
         field('MADDELER', (item.points || []).join('\n'), function (v) {
           item.points = v.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
         }, { multiline: true, rows: 3, hint: 'Her satır bir madde.' })
+      );
+      // GÖRSEL URL: kv-schema'da ve JSON-LD Product.image alanında zaten
+      // kullanılıyordu ama panelde alanı yoktu — bu yüzden hep boş kalıyor,
+      // ürünler arama sonuçlarında görselsiz çıkıyordu.
+      card.appendChild(
+        field('GÖRSEL URL', item.imageUrl, function (v) { item.imageUrl = v; }, {
+          maxlength: 300,
+          hint: 'Arama sonuçlarındaki ürün görseli (JSON-LD). Boş bırakılabilir.',
+        })
       );
       card.appendChild(
         row2(
@@ -605,6 +642,443 @@
     return b;
   }
 
+  /* --- SEO paneli --------------------------------------------------------- */
+  /*
+   * SEO dokümanları panel açılışında DEĞİL, bu sekme ilk kez açıldığında
+   * çekilir (ayrı endpoint: /api/admin/seo). Böylece sadece hero metnini
+   * düzenlemeye gelen biri gereksiz KV okuması doğurmaz.
+   */
+
+  var SEO_SECTION_LABELS = {
+    home: 'ANA SAYFA',
+    'why-us': 'NEDEN BİZ',
+    services: 'HİZMETLER',
+    contact: 'İLETİŞİM',
+  };
+
+  function seoDirty() {
+    if (!state.seo.server) return false;
+    return JSON.stringify(state.seo.server) !== JSON.stringify(state.seo.draft);
+  }
+
+  /** Kaydedilecek dokümanlar: yalnızca DEĞİŞENLER (KV yazma bütçesi). */
+  function seoChanges() {
+    var out = { sections: {}, products: {} };
+    if (!state.seo.server) return out;
+
+    Object.keys(state.seo.draft.sections).forEach(function (name) {
+      var a = JSON.stringify(state.seo.server.sections[name]);
+      var b = JSON.stringify(state.seo.draft.sections[name]);
+      if (a !== b) out.sections[name] = state.seo.draft.sections[name];
+    });
+    Object.keys(state.seo.draft.products).forEach(function (id) {
+      var a = JSON.stringify(state.seo.server.products[id]);
+      var b = JSON.stringify(state.seo.draft.products[id]);
+      if (a !== b) out.products[id] = state.seo.draft.products[id];
+    });
+    return out;
+  }
+
+  /** Bozuk JSON-LD varsa kaydetmeyi engelleriz; hangi sekmede olduğunu döner. */
+  function seoJsonErrors() {
+    var bad = [];
+    if (!state.seo.draft) return bad;
+
+    var check = function (doc, label) {
+      if (!doc || typeof doc.jsonLd !== 'string') return;
+      var raw = doc.jsonLd.trim();
+      if (!raw) return;
+      try {
+        JSON.parse(raw);
+      } catch (e) {
+        bad.push(label);
+      }
+    };
+    Object.keys(state.seo.draft.sections).forEach(function (n) {
+      check(state.seo.draft.sections[n], SEO_SECTION_LABELS[n] || n);
+    });
+    Object.keys(state.seo.draft.products).forEach(function (id) {
+      check(state.seo.draft.products[id], 'ÜRÜN: ' + id);
+    });
+    return bad;
+  }
+
+  function seoSubtabs() {
+    var bar = el('div', 'subtabs');
+
+    var add = function (key, label) {
+      var b = el('button', 'subtab', label);
+      b.type = 'button';
+      if (state.seo.sub === key) b.setAttribute('aria-current', 'true');
+      b.addEventListener('click', function () {
+        state.seo.sub = key;
+        render();
+      });
+      bar.appendChild(b);
+    };
+
+    Object.keys(SEO_SECTION_LABELS).forEach(function (name) {
+      if (state.seo.draft.sections[name]) add('s:' + name, SEO_SECTION_LABELS[name]);
+    });
+    (state.seo.productIndex || []).forEach(function (p) {
+      add('p:' + p.id, (p.name || p.id).toLocaleUpperCase('tr-TR'));
+    });
+
+    return bar;
+  }
+
+  /** Bir SEO dokümanı için alan grubu. */
+  function seoDocCard(doc, opts) {
+    var card = el('section', 'card');
+    card.appendChild(el('p', 'card__title', opts.title));
+
+    if (opts.notice) card.appendChild(el('p', 'panel__intro', opts.notice));
+
+    card.appendChild(
+      field('SAYFA BAŞLIĞI (title)', doc.pageTitle, function (v) { doc.pageTitle = v; }, {
+        counter: 60,
+        maxlength: 120,
+        hint: 'Arama sonucunda görünen mavi başlık.',
+      })
+    );
+
+    card.appendChild(
+      field('META AÇIKLAMA', doc.metaDescription, function (v) { doc.metaDescription = v; }, {
+        multiline: true,
+        rows: 3,
+        counter: 160,
+        maxlength: 320,
+        hint: 'Arama sonucunda başlığın altındaki gri metin.',
+      })
+    );
+
+    card.appendChild(
+      row2(
+        field('OG BAŞLIK', doc.ogTitle, function (v) { doc.ogTitle = v; }, {
+          maxlength: 120,
+          hint: 'Boşsa sayfa başlığı kullanılır.',
+        }),
+        field('OG GÖRSEL', doc.ogImage, function (v) { doc.ogImage = v; }, {
+          maxlength: 300,
+          hint: 'Boşsa /images/og-default.jpg kullanılır.',
+        })
+      )
+    );
+
+    card.appendChild(
+      field('OG AÇIKLAMA', doc.ogDescription, function (v) { doc.ogDescription = v; }, {
+        multiline: true,
+        rows: 2,
+        maxlength: 320,
+        hint: 'Boşsa meta açıklama kullanılır.',
+      })
+    );
+
+    card.appendChild(
+      field('CANONICAL URL', doc.canonical, function (v) { doc.canonical = v; }, {
+        maxlength: 300,
+        hint: 'Boşsa sayfanın kendi adresi kullanılır.',
+      })
+    );
+
+    return card;
+  }
+
+  /** JSON-LD ham düzenleme kartı — canlı doğrulamalı. */
+  function seoJsonCard(doc, opts) {
+    var card = el('section', 'card');
+    card.appendChild(el('p', 'card__title', 'JSON-LD — GELİŞMİŞ'));
+    card.appendChild(el('p', 'panel__intro', opts.notice));
+
+    var wrap = el('label', 'field');
+    wrap.appendChild(el('span', 'field__label', 'HAM JSON'));
+
+    var input = el('textarea', 'field__textarea');
+    input.rows = 10;
+    input.spellcheck = false;
+    input.placeholder = '{ "@context": "https://schema.org", "@type": "FAQPage", … }';
+    input.value =
+      doc.jsonLd === null || doc.jsonLd === undefined
+        ? ''
+        : typeof doc.jsonLd === 'string'
+          ? doc.jsonLd
+          : JSON.stringify(doc.jsonLd, null, 2);
+
+    var status = el('p', 'field__hint');
+
+    var validate = function () {
+      var raw = input.value.trim();
+      if (!raw) {
+        status.textContent = 'Boş — otomatik üretilen şema kullanılır.';
+        status.className = 'field__hint';
+        wrap.classList.remove('field--invalid');
+        return true;
+      }
+      try {
+        JSON.parse(raw);
+        status.textContent = 'Geçerli JSON ✓';
+        status.className = 'field__hint field__hint--ok';
+        wrap.classList.remove('field--invalid');
+        return true;
+      } catch (e) {
+        status.textContent = 'Geçersiz JSON: ' + e.message;
+        status.className = 'field__hint field__hint--error';
+        wrap.classList.add('field--invalid');
+        return false;
+      }
+    };
+
+    input.addEventListener('input', function () {
+      // Ham metni saklıyoruz: yarım kalmış bir düzenleme kaybolmasın.
+      doc.jsonLd = input.value;
+      validate();
+      touched();
+    });
+
+    validate();
+
+    wrap.appendChild(input);
+    wrap.appendChild(status);
+    card.appendChild(wrap);
+
+    var format = el('button', 'btn-admin btn-admin--ghost btn-admin--small', 'JSON’U DÜZENLE (format)');
+    format.type = 'button';
+    format.addEventListener('click', function () {
+      var raw = input.value.trim();
+      if (!raw) return;
+      try {
+        input.value = JSON.stringify(JSON.parse(raw), null, 2);
+        doc.jsonLd = input.value;
+        validate();
+        touched();
+      } catch (e) {
+        validate();
+      }
+    });
+
+    var actions = el('div', 'card__actions');
+    actions.appendChild(format);
+    card.appendChild(actions);
+
+    return card;
+  }
+
+  function panelSeo() {
+    var p = el('section', 'panel');
+
+    if (state.seo.error) {
+      p.appendChild(el('div', 'alert alert--error', state.seo.error));
+
+      var retry = el('button', 'btn-admin btn-admin--ghost', 'TEKRAR DENE');
+      retry.type = 'button';
+      retry.addEventListener('click', function () {
+        state.seo.error = '';
+        render();
+      });
+
+      var box = el('div', 'card__actions');
+      box.appendChild(retry);
+      p.appendChild(box);
+      return p;
+    }
+    if (!state.seo.draft) {
+      p.appendChild(el('p', 'loading', 'SEO ayarları yükleniyor…'));
+      loadSeo();
+      return p;
+    }
+
+    p.appendChild(
+      el(
+        'p',
+        'panel__intro',
+        'Arama motoru ve sosyal medya çıktısı. Değişiklikler kaydedildiği anda ' +
+          'sitede yayına girer; yeniden deploy gerekmez.'
+      )
+    );
+
+    p.appendChild(seoSubtabs());
+
+    var sub = state.seo.sub || 's:home';
+    var kind = sub.slice(0, 1);
+    var key = sub.slice(2);
+
+    if (kind === 's') {
+      var doc = state.seo.draft.sections[key];
+      if (!doc) {
+        p.appendChild(el('div', 'alert alert--error', 'Bölüm bulunamadı.'));
+        return p;
+      }
+
+      if (key === 'home') {
+        p.appendChild(
+          seoDocCard(doc, { title: 'ANA SAYFA — CANLI META ETİKETLERİ' })
+        );
+        p.appendChild(
+          seoJsonCard(doc, {
+            notice:
+              'Doldurulursa sayfanın TÜM yapısal verisini bu değiştirir — ' +
+              'otomatik üretilen Organization ve Product blokları devre dışı kalır.',
+          })
+        );
+      } else {
+        p.appendChild(
+          seoDocCard(doc, {
+            title: SEO_SECTION_LABELS[key] + ' — META ALANLARI',
+            notice:
+              'Site tek sayfa olduğu için bu bölümün başlık/açıklama alanları ' +
+              'şu an sayfaya YANSIMAZ; yalnızca aşağıdaki JSON-LD canlıdır. ' +
+              'Alanlar, bölüm ileride kendi sayfasına ayrılırsa kullanılmak üzere saklanır.',
+          })
+        );
+        p.appendChild(
+          seoJsonCard(doc, {
+            notice: 'Doldurulursa sayfanın yapısal veri grafiğine ek blok olarak eklenir.',
+          })
+        );
+      }
+    } else {
+      var pdoc = state.seo.draft.products[key];
+      if (!pdoc) {
+        p.appendChild(el('div', 'alert alert--error', 'Ürün bulunamadı.'));
+        return p;
+      }
+      p.appendChild(
+        seoDocCard(pdoc, {
+          title: 'ÜRÜN: ' + key,
+          notice:
+            'Tek sayfalık sitede ürünlerin ayrı bir adresi yok; bu alanlar ' +
+            'şu an sayfaya yansımaz. Canlı olan yalnızca aşağıdaki JSON-LD’dir.',
+        })
+      );
+      p.appendChild(
+        seoJsonCard(pdoc, {
+          notice:
+            'Doldurulursa bu ürün için otomatik üretilen Product bloğunun ' +
+            'yerine geçer. Boş bırakılırsa ürünün kendi alanlarından üretilir.',
+        })
+      );
+    }
+
+    return p;
+  }
+
+  /* --- Hesap paneli ------------------------------------------------------- */
+  /*
+   * Şifre değiştirme iki istekte yapılır (bkz. functions/api/admin/password.js):
+   * doğrula → uygula. Tek istekte iki PBKDF2 çalıştırmak Workers'ın CPU
+   * limitini zorluyor.
+   *
+   * Şifreler state'e YAZILMAZ; yalnızca bu kapanışın içinde yaşar ve işlem
+   * biter bitmez alanlar temizlenir.
+   */
+  function panelAccount() {
+    var p = el('section', 'panel');
+
+    p.appendChild(
+      el(
+        'p',
+        'panel__intro',
+        'Yönetici hesabı. Şifre değiştirmek için önce mevcut şifrenizi doğrulamanız gerekir.'
+      )
+    );
+
+    var card = el('section', 'card');
+    card.appendChild(el('p', 'card__title', 'ŞİFRE DEĞİŞTİR'));
+
+    var alert = el('p', 'alert');
+    alert.style.display = 'none';
+
+    var current = passwordInput('MEVCUT ŞİFRE', 'current-password');
+    var next = passwordInput('YENİ ŞİFRE (en az 12 karakter)', 'new-password');
+    var again = passwordInput('YENİ ŞİFRE (tekrar)', 'new-password');
+
+    card.appendChild(current.wrap);
+    card.appendChild(row2(next.wrap, again.wrap));
+
+    var btn = el('button', 'btn-admin', 'ŞİFREYİ DEĞİŞTİR');
+    btn.type = 'button';
+
+    var show = function (message, kind) {
+      alert.style.display = '';
+      alert.textContent = message;
+      alert.className = 'alert' + (kind ? ' alert--' + kind : '');
+    };
+
+    btn.addEventListener('click', function () {
+      var cur = current.input.value;
+      var a = next.input.value;
+      var b = again.input.value;
+
+      if (!cur) return show('Mevcut şifrenizi girin.', 'error');
+      if (a.length < 12) return show('Yeni şifre en az 12 karakter olmalı.', 'error');
+      if (a !== b) return show('Yeni şifreler birbiriyle eşleşmiyor.', 'error');
+      if (a === cur) return show('Yeni şifre mevcut şifreyle aynı olamaz.', 'error');
+
+      btn.disabled = true;
+      show('Doğrulanıyor…', null);
+
+      api('/api/admin/password', { method: 'POST', body: { step: 'dogrula', currentPassword: cur } })
+        .then(function (res) {
+          if (res.status === 401 && res.data && res.data.reason) {
+            window.location.href = '/admin/login';
+            return null;
+          }
+          if (!res.ok || !res.data.ok) {
+            show(describeError(res, 'Mevcut şifre doğrulanamadı.'), 'error');
+            return null;
+          }
+          show('Yeni şifre kaydediliyor…', null);
+          return api('/api/admin/password', {
+            method: 'POST',
+            body: { step: 'uygula', token: res.data.token, newPassword: a },
+          });
+        })
+        .then(function (res) {
+          btn.disabled = false;
+          if (!res) return;
+
+          if (!res.ok || !res.data.ok) {
+            show(describeError(res, 'Şifre değiştirilemedi.'), 'error');
+            return;
+          }
+
+          current.input.value = '';
+          next.input.value = '';
+          again.input.value = '';
+          show(
+            'Şifre değiştirildi. Bu oturum açık kalır; diğer cihazlarda ' +
+              'yeni şifreyle giriş yapmanız gerekir.',
+            'ok'
+          );
+        })
+        .catch(function () {
+          btn.disabled = false;
+          show('Bağlantı kurulamadı.', 'error');
+        });
+    });
+
+    var actions = el('div', 'card__actions');
+    actions.appendChild(btn);
+    card.appendChild(actions);
+    card.appendChild(alert);
+
+    p.appendChild(card);
+    return p;
+  }
+
+  function passwordInput(labelText, autocomplete) {
+    var wrap = el('label', 'field');
+    wrap.appendChild(el('span', 'field__label', labelText));
+
+    var input = el('input', 'field__input');
+    input.type = 'password';
+    input.autocomplete = autocomplete;
+    input.maxLength = 200;
+
+    wrap.appendChild(input);
+    return { wrap: wrap, input: input };
+  }
+
   /* --- render --- */
 
   var BUILDERS = {
@@ -612,7 +1086,9 @@
     why: panelWhy,
     products: panelProducts,
     contact: panelContact,
+    seo: panelSeo,
     inbox: panelInbox,
+    account: panelAccount,
   };
 
   function render() {
@@ -651,6 +1127,38 @@
 
   /* --- yükle / kaydet --- */
 
+  function loadSeo() {
+    if (state.seo.loading) return;
+    state.seo.loading = true;
+
+    api('/api/admin/seo')
+      .then(function (res) {
+        state.seo.loading = false;
+
+        if (res.status === 401) {
+          window.location.href = '/admin/login';
+          return;
+        }
+        if (!res.ok || !res.data.ok) {
+          state.seo.error = describeError(res, 'SEO ayarları yüklenemedi.');
+          render();
+          return;
+        }
+
+        var d = res.data.data;
+        state.seo.error = '';
+        state.seo.productIndex = d.productIndex || [];
+        state.seo.server = { sections: d.sections || {}, products: d.products || {} };
+        state.seo.draft = clone(state.seo.server);
+        render();
+      })
+      .catch(function () {
+        state.seo.loading = false;
+        state.seo.error = 'Bağlantı kurulamadı.';
+        render();
+      });
+  }
+
   function load() {
     return api('/api/admin/content').then(function (res) {
       if (res.status === 401) {
@@ -677,11 +1185,45 @@
     });
   }
 
-  saveBtn.addEventListener('click', function () {
-    saveBtn.disabled = true;
-    refreshSavebar('Kaydediliyor…', null);
+  function saveSeo() {
+    var changes = seoChanges();
+    if (Object.keys(changes.sections).length === 0 && Object.keys(changes.products).length === 0) {
+      return Promise.resolve(true);
+    }
 
-    api('/api/admin/content', {
+    return api('/api/admin/seo', { method: 'PUT', body: changes }).then(function (res) {
+      if (res.status === 401) {
+        window.location.href = '/admin/login';
+        return false;
+      }
+      if (!res.ok || !res.data.ok) {
+        var detail = '';
+        if (res.data && res.data.errors) {
+          detail = ' (' + Object.keys(res.data.errors).join(', ') + ')';
+        }
+        refreshSavebar(describeError(res, 'SEO kaydedilemedi.') + detail, 'error');
+        return false;
+      }
+
+      // Endpoint doğrulanmış hali döndürüyor; yeniden GET atmıyoruz
+      // (WAF: /api/* için IP başına 5 istek / 10 saniye).
+      var saved = res.data.data || {};
+      Object.keys(saved.sections || {}).forEach(function (n) {
+        state.seo.server.sections[n] = saved.sections[n];
+        state.seo.draft.sections[n] = clone(saved.sections[n]);
+      });
+      Object.keys(saved.products || {}).forEach(function (id) {
+        state.seo.server.products[id] = saved.products[id];
+        state.seo.draft.products[id] = clone(saved.products[id]);
+      });
+      return true;
+    });
+  }
+
+  function saveContent() {
+    if (!contentDirty()) return Promise.resolve(true);
+
+    return api('/api/admin/content', {
       method: 'PUT',
       body: {
         hero: state.draft.hero,
@@ -689,25 +1231,50 @@
         products: state.draft.products,
         contact: state.draft.contact,
       },
-    })
-      .then(function (res) {
+    }).then(function (res) {
+      if (res.status === 401) {
+        window.location.href = '/admin/login';
+        return false;
+      }
+      if (!res.ok || !res.data.ok) {
+        refreshSavebar(describeError(res, 'Kaydedilemedi.'), 'error');
+        return false;
+      }
+
+      // Endpoint doğrulanmış (temizlenmiş) hâli döndürüyor; yeniden GET
+      // atmıyoruz — WAF /api/* için IP başına 5 istek / 10 saniye veriyor.
+      var saved = res.data.data || {};
+      Object.keys(saved).forEach(function (key) {
+        state.server[key] = saved[key];
+        state.draft[key] = clone(saved[key]);
+      });
+      return true;
+    });
+  }
+
+  saveBtn.addEventListener('click', function () {
+    // Bozuk JSON-LD ile kaydetmeye izin verilmez: sunucu zaten reddediyor,
+    // ama kullanıcıya sekme adıyla birlikte daha net söylüyoruz.
+    var bad = seoJsonErrors();
+    if (bad.length) {
+      refreshSavebar('Geçersiz JSON-LD: ' + bad.join(', ') + '. Kaydedilmedi.', 'error');
+      return;
+    }
+
+    saveBtn.disabled = true;
+    refreshSavebar('Kaydediliyor…', null);
+
+    saveContent()
+      .then(function (ok) {
+        if (!ok) return false;
+        return saveSeo();
+      })
+      .then(function (ok) {
         saveBtn.disabled = false;
-
-        if (res.status === 401) {
-          window.location.href = '/admin/login';
-          return;
-        }
-        if (!res.ok || !res.data.ok) {
-          refreshSavebar(describeError(res, 'Kaydedilemedi.'), 'error');
-          return;
-        }
-
-        // Sunucu doğrulanmış hali döndürmediği için taze veriyi yeniden çekiyoruz;
-        // böylece panel KV'deki gerçek (temizlenmiş) içerikle senkron kalır.
-        return load().then(function () {
-          refreshSavebar('Kaydedildi. Değişiklikler sitede yayında.', 'ok');
-          setTimeout(refreshSavebar, 4000);
-        });
+        if (!ok) return;
+        render();
+        refreshSavebar('Kaydedildi. Değişiklikler sitede yayında.', 'ok');
+        setTimeout(refreshSavebar, 4000);
       })
       .catch(function () {
         saveBtn.disabled = false;
@@ -717,6 +1284,7 @@
 
   discardBtn.addEventListener('click', function () {
     state.draft = clone(state.server);
+    if (state.seo.server) state.seo.draft = clone(state.seo.server);
     render();
     refreshSavebar();
   });
