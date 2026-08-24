@@ -2,7 +2,7 @@
   "name": "meister-kaffee-roesterei",
   "version": "0.1.0",
   "private": true,
-  "description": "MEISTER KAFFEE-RÖSTEREİ — B2B tek sayfa site + admin paneli (Cloudflare Pages + KV)",
+  "description": "MEISTER KAFFEERÖSTEREI — B2B tek sayfa site + admin paneli (Cloudflare Pages + KV)",
   "type": "module",
   "scripts": {
     "dev": "wrangler pages dev",

@@ -4,7 +4,7 @@ Bu dosya, bu repoda çalışırken Claude Code (veya başka bir AI kod asistanı
 
 ## Proje Özeti
 
-**MEISTER KAFFEE-RÖSTEREİ** — B2B odaklı, tek sayfalık, koyu temalı (dark mode) premium kahve kavurma markası web sitesi + entegre yönetim paneli. Sıfır bütçeli mimari: Cloudflare Pages + Cloudflare Pages Functions + Cloudflare KV. Harici veritabanı, harici auth servisi veya ücretli bir bileşen **yok**.
+**MEISTER KAFFEERÖSTEREI** — B2B odaklı, tek sayfalık, koyu temalı (dark mode) premium kahve kavurma markası web sitesi + entegre yönetim paneli. Sıfır bütçeli mimari: Cloudflare Pages + Cloudflare Pages Functions + Cloudflare KV. Harici veritabanı, harici auth servisi veya ücretli bir bileşen **yok**.
 
 ## Teknoloji Yığını (değiştirilemez kararlar)
 

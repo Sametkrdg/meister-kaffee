@@ -44,7 +44,7 @@ ${body}
   </main>
 
   <footer class="footer">
-    <p class="footer__copy">© ${new Date().getFullYear()} MEISTER KAFFEE-RÖSTEREİ — TÜM HAKLARI SAKLIDIR</p>
+    <p class="footer__copy">© ${new Date().getFullYear()} MEISTER KAFFEERÖSTEREI — TÜM HAKLARI SAKLIDIR</p>
     <p class="footer__links">
       <a href="/kvkk-aydinlatma-metni">KVKK AYDINLATMA METNİ</a>
       <a href="/cerez-politikasi">ÇEREZ POLİTİKASI</a>

@@ -1,4 +1,4 @@
-# MEISTER KAFFEE-RÖSTEREİ
+# MEISTER KAFFEERÖSTEREI
 
 B2B odaklı tek sayfalık kurumsal site + entegre yönetim paneli.
 Cloudflare Pages + Pages Functions + KV üzerinde, sıfır bütçeli mimari.

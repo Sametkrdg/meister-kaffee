@@ -1,4 +1,4 @@
-# MEISTER KAFFEE-RÖSTEREİ
+# MEISTER KAFFEERÖSTEREI
 ## Zero-Budget Architecture & Execution Roadmap (Cloudflare Pages + KV)
 
 Prepared as a milestone-based build plan. Every locked requirement from the brief is treated as fixed and is not altered below; where an implementation detail was not specified (e.g. exact hashing algorithm, cookie format), a specific engineering decision is made and called out explicitly so nothing is left ambiguous.

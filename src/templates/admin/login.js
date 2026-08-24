@@ -27,7 +27,7 @@ export function renderLoginPage({ nextPath = '', configError = false, assetVersi
     <div class="auth__brand">
       <img src="${v('/images/logomark.png')}" alt="" width="242" height="354" class="auth__mark">
       <p class="auth__name">MEISTER</p>
-      <p class="auth__sub">KAFFEE-RÖSTEREİ</p>
+      <p class="auth__sub">KAFFEERÖSTEREI</p>
     </div>
 
     <h1 class="auth__title">Yönetim Paneli</h1>
