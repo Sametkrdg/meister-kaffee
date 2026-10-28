@@ -8,6 +8,7 @@
     "dev": "wrangler pages dev",
     "deploy": "wrangler pages deploy",
     "seed": "node scripts/seed-kv.mjs",
+    "photos": "node scripts/build-product-photos.mjs",
     "kv:create": "wrangler kv namespace create CONTENT_KV && wrangler kv namespace create ADMIN_KV"
   },
   "devDependencies": {

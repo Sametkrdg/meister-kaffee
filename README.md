@@ -54,12 +54,28 @@ açtığından emin olarak çalıştır (`npx wrangler whoami`).
 npm run dev      # wrangler pages dev  → http://localhost:8788
 ```
 
+## Ürün fotoğrafları ("Ürünlerimiz" bölümü)
+
+Panel gerekmez; ürün adı dosya adından gelir.
+
+1. Orijinal fotoğrafları `photos/urunler/` klasörüne koy. Dosya adı = ürün adı,
+   baştaki numara yalnızca sıralama içindir:
+   `01 Espresso Blend 250 g.jpg` → kartta **Espresso Blend 250 g**
+2. `npm run photos` çalıştır: fotoğraflar 900px WebP'ye küçültülüp
+   `public/images/urunler/` altına yazılır, liste `src/lib/shop-photos.js`'e üretilir.
+3. Değişiklikleri commit'leyip push'la.
+
+Orijinaller (`photos/`) repoya girmez; yalnızca küçültülmüş kopyalar commit'lenir.
+Bir fotoğrafı kaldırmak için `photos/urunler/`'den sil ve `npm run photos`'u
+yeniden çalıştır. Klasör boşsa bölüm ve menüdeki "ÜRÜNLER" linki gizlenir.
+Panelde Trendyol linki girilmişse her kart Trendyol mağazasına gider.
+
 ## Yayına alma
 
 ```bash
 npm run deploy
 ```
 
-Production ortamında `ADMIN_EMAIL` ve `SESSION_SECRET` değerleri
+Production ortamında `SESSION_SECRET`, `PASSWORD_PEPPER` ve `TURNSTILE_SECRET_KEY` değerleri
 Cloudflare Pages panelinde **Settings > Environment variables** altında
 *Encrypt* işaretli olarak tanımlanmalıdır — repoya asla girmez.

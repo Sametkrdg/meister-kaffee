@@ -12,13 +12,15 @@ import { asset } from '../lib/assets.js';
 const LINKS = [
   { label: 'NEDEN BİZ', href: '#neden-biz' },
   { label: 'HİZMETLER', href: '#hizmetler' },
+  // Yalnızca "Ürünlerimiz" bölümü render ediliyorsa (fotoğraf varsa) gösterilir
+  { label: 'ÜRÜNLER', href: '#urunler', shopOnly: true },
   { label: 'İLETİŞİM', href: '#iletisim' },
 ];
 
-export function renderNav({ hero, assetVersion }) {
+export function renderNav({ hero, assetVersion, hasShop = false }) {
   const ctaLabel = escapeHtml(hero?.ctaLabel || 'BİZİMLE İLETİŞİME GEÇ');
 
-  const links = LINKS.map(
+  const links = LINKS.filter((l) => hasShop || !l.shopOnly).map(
     (l) => `<a class="nav__link" href="${l.href}">${l.label}</a>`
   ).join('\n      ');
 

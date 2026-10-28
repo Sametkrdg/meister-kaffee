@@ -9,9 +9,11 @@ import { renderHero } from '../templates/hero.js';
 import { renderMarquee } from '../templates/marquee.js';
 import { renderWhyUs } from '../templates/why-us.js';
 import { renderServicesProducts } from '../templates/services-products.js';
+import { renderShop } from '../templates/shop.js';
 import { renderMarketplace } from '../templates/marketplace.js';
 import { renderContact } from '../templates/contact.js';
 import { renderFooter } from '../templates/footer.js';
+import { SHOP_PHOTOS } from './shop-photos.js';
 
 /**
  * @param {object} content kv-schema.readSiteContent() çıktısı
@@ -23,12 +25,13 @@ export function renderHomePage(content, origin, assetVersion) {
   const { hero, whyUs, products, contact, seo, seoSections, seoProducts } = content;
 
   const body = [
-    renderNav({ hero, assetVersion }),
+    renderNav({ hero, assetVersion, hasShop: SHOP_PHOTOS.length > 0 }),
     '<main class="page">',
     renderHero({ hero, contact }),
     renderMarquee({ whyUs }),
     renderWhyUs({ whyUs }),
     renderServicesProducts({ products }),
+    renderShop({ photos: SHOP_PHOTOS, contact, assetVersion }),
     renderMarketplace({ contact }),
     renderContact({ contact }),
     '</main>',

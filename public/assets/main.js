@@ -215,7 +215,7 @@
   /* ---- Scroll-reveal ----------------------------------------------------- */
 
   if (!reduceMotion && 'IntersectionObserver' in window) {
-    var targets = document.querySelectorAll('.why-card, .svc-card');
+    var targets = document.querySelectorAll('.why-card, .svc-card, .shop-card');
 
     var observer = new IntersectionObserver(
       function (entries) {

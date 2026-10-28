@@ -74,10 +74,12 @@ kaynaklarından `scripts/build-logo.mjs` ile monokrom üretilir.
 public/            statik varlıklar — Pages CDN'den doğrudan servis edilir
   fonts/            self-host Fraunces + Inter (woff2, latin + latin-ext)
   images/           logomark, logo-full, favicon, OG görseli
+  images/urunler/   "Ürünlerimiz" fotoğrafları — build-product-photos.mjs üretir, elle dosya koyma
   assets/           main.css, main.js, admin.js  (tarayıcıya giden dosyalar)
   robots.txt
 src/templates/      server-render HTML şablon fonksiyonları (hero, why-us, services-products, contact, admin/*)
 src/lib/            kv-schema.js, render.js, seo.js, auth.js, validate.js
+                    shop-photos.js (OTOMATİK üretilir — elle düzenleme)
 functions/          Cloudflare Pages Functions (routing = dosya yolu)
   index.js          GET /  → edge-SSR ana sayfa
   api/contact.js    POST /api/contact
@@ -85,6 +87,7 @@ functions/          Cloudflare Pages Functions (routing = dosya yolu)
   admin/_middleware.js  /admin/* için auth guard — TEK auth kontrol noktası
 scripts/seed-kv.mjs  yerel: admin şifresini hashleyip KV'yi ilk kez doldurur
 scripts/build-logo.mjs yerel: meisterkaffee/*.svg → public/images/*.png|jpg (tek seferlik)
+scripts/build-product-photos.mjs yerel: photos/urunler/* → public/images/urunler/*.webp + src/lib/shop-photos.js
 wrangler.toml        KV binding'leri, build config
 ```
 
@@ -110,6 +113,12 @@ node scripts/seed-kv.mjs
 
 # logo varlıklarını yeniden üret (yalnızca logo kaynağı değişirse)
 node scripts/build-logo.mjs
+
+# "Ürünlerimiz" fotoğraflarını küçült + listeyi üret (photos/urunler/ değişince)
+npm run photos
+
+# yalnızca admin şifresini sıfırla (içerik/SEO dokümanlarına dokunmaz)
+npm run seed -- --sadece-sifre
 
 # deploy
 wrangler pages deploy
@@ -181,6 +190,12 @@ Build adımı yoktur (framework/bundler yok) — `wrangler pages dev` / `deploy`
   `/api/admin/*` isteği atmaktan kaçın (ör. silmeden sonra tüm içeriği yeniden
   çekme; yerel state güncelle). 429 yanıtı Worker'a ulaşmaz, gövdesi bizim JSON
   formatımızda değildir; istemci tarafında `describeError()` ile ele alınır.
+- **"Ürünlerimiz" bölümü KV'den değil, `src/lib/shop-photos.js`'ten beslenir**
+  (müşteri kararı, 28 Ekim 2026: panel gerekmesin, fotoğraflar repoda dursun).
+  Ürün adı dosya adından gelir; bu yüzden bu bölüm için KV şeması veya panel
+  alanı EKLEMEYİN. Hizmet kartları (`content:products`) ayrı bir şeydir ve
+  panelden yönetilmeye devam eder. Kartların gittiği Trendyol linki
+  `content:contact.marketplaceLinks.trendyol`'dur.
 - Tüm buton/CTA metinleri Türkçe kalmalı (örn. "Bizimle İletişime Geç") — marka kopyası çift dilli değildir, sadece Türkçe.
 
 ## Güvenlik Kontrol Listesi (her PR öncesi)
