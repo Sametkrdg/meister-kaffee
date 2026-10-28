@@ -12,6 +12,8 @@ import {
   KEYS,
   readDoc,
   writeDoc,
+  mergeShop,
+  withMarketplaceDefaults,
   touchMeta,
   listSubmissions,
   readSubmission,
@@ -21,6 +23,7 @@ import {
   validateContactInfo,
   validateHero,
   validateProducts,
+  validateShop,
   validateWhyUs,
 } from '../../../src/lib/validate.js';
 import { jsonResponse } from '../../../src/lib/admin-guard.js';
@@ -37,11 +40,12 @@ export async function onRequestGet(context) {
     return jsonResponse({ ok: true, data: { submission: entry } });
   }
 
-  const [hero, whyUs, products, contact, meta, submissions] = await Promise.all([
+  const [hero, whyUs, products, contact, shop, meta, submissions] = await Promise.all([
     readDoc(env.CONTENT_KV, KEYS.hero),
     readDoc(env.CONTENT_KV, KEYS.whyUs),
     readDoc(env.CONTENT_KV, KEYS.products),
     readDoc(env.CONTENT_KV, KEYS.contact),
+    readDoc(env.CONTENT_KV, KEYS.shop),
     readDoc(env.CONTENT_KV, KEYS.meta),
     // Özetler metadata'dan gelir; gövdeler okunmaz (alt-istek bütçesi korunur).
     listSubmissions(env.CONTENT_KV, 100),
@@ -53,7 +57,9 @@ export async function onRequestGet(context) {
       hero,
       whyUs,
       products,
-      contact,
+      contact: withMarketplaceDefaults(contact),
+      // Fotoğraf listesiyle birleşik hâl: panel küçük resimleri buradan çizer.
+      shop: mergeShop(shop),
       meta,
       submissions: submissions.items,
       submissionsTotal: submissions.total,
@@ -109,9 +115,19 @@ export async function onRequestPut(context) {
     updated.push('products');
   }
   if (payload.contact !== undefined) {
-    saved.contact = validateContactInfo(payload.contact);
-    writes.push(writeDoc(env.CONTENT_KV, KEYS.contact, saved.contact));
+    const contact = validateContactInfo(payload.contact);
+    writes.push(writeDoc(env.CONTENT_KV, KEYS.contact, contact));
+    // Panel, sitede görünen hâli görsün (boş link varsayılanla dolu döner)
+    saved.contact = withMarketplaceDefaults(contact);
     updated.push('contact');
+  }
+  if (payload.shop !== undefined) {
+    const shop = validateShop(payload.shop);
+    writes.push(writeDoc(env.CONTENT_KV, KEYS.shop, shop));
+    // GET ile aynı şekil (fotoğraf alanları dahil) dönmeli; aksi halde panel
+    // kaydettikten sonra küçük resimleri kaybeder ve formu "değişmiş" sanır.
+    saved.shop = mergeShop(shop);
+    updated.push('shop');
   }
 
   if (writes.length === 0) {

@@ -6,13 +6,15 @@
  *
  * Akış:
  *   photos/urunler/*.jpg|jpeg|png|webp   (orijinaller — .gitignore'da, repoya girmez)
- *     → public/images/urunler/<slug>.webp (en fazla 900px genişlik, commit'lenir)
+ *     → public/images/urunler/<slug>.webp (900x1125, 4:5 kırpılmış, commit'lenir)
  *     → src/lib/shop-photos.js            (liste + boyutlar, commit'lenir)
  *
- * Ürün adı DOSYA ADINDAN gelir, panel gerekmez:
- *   "01 Espresso Blend 250 g.jpg"  →  "Espresso Blend 250 g"
+ * Ürünün VARSAYILAN adı ve kimliği (id = slug) dosya adından gelir:
+ *   "01 Espresso Blend 250 g.jpg"  →  id "espresso-blend-250-g", ad "Espresso Blend 250 g"
  * Baştaki numara yalnızca sıralama içindir ve ada yazılmaz. Alt çizgi
- * boşluğa çevrilir.
+ * boşluğa çevrilir. Ad ve detay satırı panelden (ÜRÜNLER sekmesi,
+ * `content:shop`) değiştirilebilir; panel kaydı id ile eşleşir. Bu yüzden
+ * dosya adı değişirse id de değişir ve paneldeki ad o fotoğrafa uygulanmaz.
  *
  * public/images/urunler/ klasörü TAMAMEN bu betiğe aittir: kaynağı silinen
  * fotoğrafın çıktısı da silinir. Klasöre elle dosya koyma.
@@ -32,7 +34,9 @@ const MANIFEST = 'src/lib/shop-photos.js';
 const PUBLIC_PREFIX = '/images/urunler';
 
 // Kart masaüstünde ~300-400px; 900px 2x ekranlarda da net, dosya küçük kalır.
-const MAX_WIDTH = 900;
+// Oran kartla (.shop-card__media, 4:5) aynı olmalı.
+const WIDTH = 900;
+const HEIGHT = 1125;
 const QUALITY = 80;
 
 const INPUT_RE = /\.(jpe?g|png|webp)$/i;
@@ -75,11 +79,13 @@ for (const file of sources) {
   const outFile = `${slug}.webp`;
   const info = await sharp(path.join(SRC, file))
     .rotate() // telefon fotoğraflarındaki EXIF yönünü uygula
-    .resize({ width: MAX_WIDTH, withoutEnlargement: true })
+    // Ürün çekimleri yatay ve paket kadrajın bir yanında olabiliyor; ortadan
+    // kırpmak paketi keser. "attention" en dikkat çeken bölgeyi (paketi) ortalar.
+    .resize({ width: WIDTH, height: HEIGHT, fit: 'cover', position: sharp.strategy.attention })
     .webp({ quality: QUALITY })
     .toFile(path.join(OUT, outFile));
 
-  photos.push({ name, src: `${PUBLIC_PREFIX}/${outFile}`, width: info.width, height: info.height });
+  photos.push({ id: slug, name, src: `${PUBLIC_PREFIX}/${outFile}`, width: info.width, height: info.height });
   console.log(`  ✓ ${file}  →  ${outFile}  (${info.width}x${info.height}, ${Math.round(info.size / 1024)} KB)`);
 }
 
@@ -101,6 +107,6 @@ fs.writeFileSync(MANIFEST, manifest, 'utf8');
 
 console.log(
   photos.length
-    ? `\n  ${photos.length} fotoğraf hazır. Commit'leyip push'la.\n`
+    ? `\n  ${photos.length} fotoğraf hazır. Commit'leyip push'la; ad/detay panelin ÜRÜNLER sekmesinden değişir.\n`
     : `\n  ${SRC}/ boş — "Ürünlerimiz" bölümü sitede gizli kalacak.\n`
 );

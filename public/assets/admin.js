@@ -566,6 +566,54 @@
     return p;
   }
 
+  // Fotoğraflar repodan gelir (npm run photos); burada yalnızca metin
+  // düzenlenir. Ekle/sil/sıra yok: bunlar fotoğraf dosyalarıyla belirlenir.
+  function panelShop() {
+    var p = el('section', 'panel');
+    p.dataset.panel = 'shop';
+
+    var items = state.draft.shop || [];
+
+    if (items.length === 0) {
+      p.appendChild(
+        el('p', 'panel__intro', 'Henüz ürün fotoğrafı yok. Fotoğraflar repodaki photos/urunler klasöründen eklenir; bölüm o zamana kadar sitede gizli kalır.')
+      );
+      return p;
+    }
+
+    p.appendChild(
+      el('p', 'panel__intro', 'Fotoğraf eklemek, silmek veya sırasını değiştirmek panelden yapılamaz — fotoğraflar repodan gelir. Buradan yalnızca ad ve detay satırı değişir. Boş bırakılan ad, fotoğrafın dosya adına döner. Kartlar İLETİŞİM sekmesindeki Trendyol linkine gider.')
+    );
+
+    items.forEach(function (item) {
+      var card = el('div', 'card shop-item');
+
+      var img = el('img', 'shop-item__img');
+      img.src = item.src;
+      img.alt = '';
+      img.width = 90;
+      img.height = 112;
+      img.loading = 'lazy';
+      card.appendChild(img);
+
+      var fields = el('div', 'shop-item__fields');
+      fields.appendChild(
+        field('ÜRÜN ADI', item.name, function (v) { item.name = v; }, { maxlength: 120 })
+      );
+      fields.appendChild(
+        field('DETAY', item.detail, function (v) { item.detail = v; }, {
+          maxlength: 160,
+          hint: 'Adın altındaki kısa satır. Örn: Espresso · Sert İçim · 250 g',
+        })
+      );
+      card.appendChild(fields);
+
+      p.appendChild(card);
+    });
+
+    return p;
+  }
+
   function panelContact() {
     var p = el('section', 'panel');
     p.dataset.panel = 'contact';
@@ -574,7 +622,7 @@
     c.socialLinks = c.socialLinks || {};
 
     p.appendChild(
-      el('p', 'panel__intro', 'Pazaryeri bağlantısı boş bırakılırsa o buton sitede hiç görünmez.')
+      el('p', 'panel__intro', 'Amazon bağlantısı boş bırakılırsa o buton sitede hiç görünmez. Trendyol boş bırakılırsa koddaki varsayılan mağaza linki kullanılır.')
     );
 
     var card = el('div', 'card');
@@ -602,7 +650,11 @@
       row2(
         field('TRENDYOL', c.marketplaceLinks.trendyol, function (v) {
           c.marketplaceLinks.trendyol = v;
-        }, { maxlength: 300, placeholder: 'https://…' }),
+        }, {
+          maxlength: 300,
+          placeholder: 'https://…',
+          hint: 'Boş bırakılırsa koddaki varsayılan mağaza linki kullanılır.',
+        }),
         field('AMAZON', c.marketplaceLinks.amazon, function (v) {
           c.marketplaceLinks.amazon = v;
         }, { maxlength: 300, placeholder: 'https://…' })
@@ -1212,6 +1264,7 @@
     hero: panelHero,
     why: panelWhy,
     products: panelProducts,
+    shop: panelShop,
     contact: panelContact,
     seo: panelSeo,
     inbox: panelInbox,
@@ -1360,6 +1413,7 @@
         hero: state.draft.hero,
         whyUs: state.draft.whyUs,
         products: state.draft.products,
+        shop: state.draft.shop,
         contact: state.draft.contact,
       },
     }).then(function (res) {

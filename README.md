@@ -56,7 +56,8 @@ npm run dev      # wrangler pages dev  → http://localhost:8788
 
 ## Ürün fotoğrafları ("Ürünlerimiz" bölümü)
 
-Panel gerekmez; ürün adı dosya adından gelir.
+Fotoğraflar repoda durur. Ürün adı başta dosya adından gelir; ad ve altındaki
+detay satırı sonradan panelin **ÜRÜNLER** sekmesinden değiştirilebilir.
 
 1. Orijinal fotoğrafları `photos/urunler/` klasörüne koy. Dosya adı = ürün adı,
    baştaki numara yalnızca sıralama içindir:
@@ -68,7 +69,11 @@ Panel gerekmez; ürün adı dosya adından gelir.
 Orijinaller (`photos/`) repoya girmez; yalnızca küçültülmüş kopyalar commit'lenir.
 Bir fotoğrafı kaldırmak için `photos/urunler/`'den sil ve `npm run photos`'u
 yeniden çalıştır. Klasör boşsa bölüm ve menüdeki "ÜRÜNLER" linki gizlenir.
-Panelde Trendyol linki girilmişse her kart Trendyol mağazasına gider.
+Kartlar Trendyol mağazasına gider (panelde İLETİŞİM > Trendyol; boşsa
+koddaki varsayılan link kullanılır).
+
+Dosya adını sonradan değiştirme: panel kaydı dosya adından türeyen kimlikle
+eşleşir, ad değişirse paneldeki metin o fotoğrafa uygulanmaz.
 
 ## Yayına alma
 

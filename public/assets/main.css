@@ -556,6 +556,7 @@ a.shop-card:hover { color: var(--text-primary); }
 a.shop-card:hover .shop-card__img { transform: scale(1.03); }
 
 .shop-card__name { font-size: 20px; line-height: 1.25; }
+.shop-card__detail { margin: -6px 0 0; font-size: 13px; line-height: 1.5; color: var(--text-body); }
 
 /* Vurgu metinle aynı renk (bkz. CLAUDE.md, WCAG 1.4.1): bağlantı olduğu
    renkle değil alt çizgiyle belli edilir. */

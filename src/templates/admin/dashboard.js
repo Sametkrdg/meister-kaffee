@@ -43,6 +43,7 @@ export function renderDashboard({ session, assetVersion }) {
     <button class="tab" role="tab" data-panel="hero" aria-selected="true">HERO</button>
     <button class="tab" role="tab" data-panel="why" aria-selected="false">NEDEN BİZ</button>
     <button class="tab" role="tab" data-panel="products" aria-selected="false">HİZMETLER</button>
+    <button class="tab" role="tab" data-panel="shop" aria-selected="false">ÜRÜNLER</button>
     <button class="tab" role="tab" data-panel="contact" aria-selected="false">İLETİŞİM</button>
     <button class="tab" role="tab" data-panel="seo" aria-selected="false">SEO</button>
     <button class="tab" role="tab" data-panel="inbox" aria-selected="false">MESAJLAR</button>

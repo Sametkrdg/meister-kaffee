@@ -102,6 +102,7 @@ if (credentialsOnly) {
   kvPut('CONTENT_KV', KEYS.whyUs, DEFAULTS[KEYS.whyUs]);
   kvPut('CONTENT_KV', KEYS.products, DEFAULTS[KEYS.products]);
   kvPut('CONTENT_KV', KEYS.contact, DEFAULTS[KEYS.contact]);
+  kvPut('CONTENT_KV', KEYS.shop, DEFAULTS[KEYS.shop]);
   // İletişim formu kayıtları için başlangıç anahtarı YOKTUR: her kayıt kendi
   // `content:submission:<tarih>-<id>` anahtarına yazılır (bkz. kv-schema.js).
   kvPut('CONTENT_KV', KEYS.meta, {

@@ -160,6 +160,25 @@ export function validateProducts(input) {
   });
 }
 
+/**
+ * "Ürünlerimiz" metinleri (content:shop). Fotoğraf alanları (src, boyut)
+ * bilerek atılır: onlar repodan gelir, panelden değiştirilemez.
+ */
+export function validateShop(input) {
+  const list = Array.isArray(input) ? input : [];
+  return list
+    .slice(0, 50)
+    .map((item) => {
+      const d = item && typeof item === 'object' ? item : {};
+      return {
+        id: slugify(d.id || ''),
+        name: cleanText(d.name, 120),
+        detail: cleanText(d.detail, 160),
+      };
+    })
+    .filter((d) => d.id);
+}
+
 export function validateContactInfo(input) {
   const d = input && typeof input === 'object' ? input : {};
   const ml = d.marketplaceLinks && typeof d.marketplaceLinks === 'object' ? d.marketplaceLinks : {};

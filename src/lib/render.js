@@ -13,7 +13,6 @@ import { renderShop } from '../templates/shop.js';
 import { renderMarketplace } from '../templates/marketplace.js';
 import { renderContact } from '../templates/contact.js';
 import { renderFooter } from '../templates/footer.js';
-import { SHOP_PHOTOS } from './shop-photos.js';
 
 /**
  * @param {object} content kv-schema.readSiteContent() çıktısı
@@ -22,16 +21,16 @@ import { SHOP_PHOTOS } from './shop-photos.js';
  * @returns {string} tam HTML belgesi
  */
 export function renderHomePage(content, origin, assetVersion) {
-  const { hero, whyUs, products, contact, seo, seoSections, seoProducts } = content;
+  const { hero, whyUs, products, contact, shop, seo, seoSections, seoProducts } = content;
 
   const body = [
-    renderNav({ hero, assetVersion, hasShop: SHOP_PHOTOS.length > 0 }),
+    renderNav({ hero, assetVersion, hasShop: shop.length > 0 }),
     '<main class="page">',
     renderHero({ hero, contact }),
     renderMarquee({ whyUs }),
     renderWhyUs({ whyUs }),
     renderServicesProducts({ products }),
-    renderShop({ photos: SHOP_PHOTOS, contact, assetVersion }),
+    renderShop({ items: shop, contact, assetVersion }),
     renderMarketplace({ contact }),
     renderContact({ contact }),
     '</main>',

@@ -424,6 +424,21 @@ code { font-family: var(--font-mono); font-size: 0.92em; }
 }
 .card__actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
+/* ÜRÜNLER sekmesi: küçük resim + alanlar yan yana */
+.shop-item { flex-direction: row; align-items: flex-start; }
+.shop-item__img {
+  flex: none;
+  width: 90px;
+  height: 112px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  background: var(--bg-primary);
+}
+.shop-item__fields { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+@media (max-width: 560px) {
+  .shop-item { flex-direction: column; }
+}
+
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
 /* ---- Mesajlar ------------------------------------------------------------ */

@@ -190,12 +190,18 @@ Build adımı yoktur (framework/bundler yok) — `wrangler pages dev` / `deploy`
   `/api/admin/*` isteği atmaktan kaçın (ör. silmeden sonra tüm içeriği yeniden
   çekme; yerel state güncelle). 429 yanıtı Worker'a ulaşmaz, gövdesi bizim JSON
   formatımızda değildir; istemci tarafında `describeError()` ile ele alınır.
-- **"Ürünlerimiz" bölümü KV'den değil, `src/lib/shop-photos.js`'ten beslenir**
-  (müşteri kararı, 28 Ekim 2026: panel gerekmesin, fotoğraflar repoda dursun).
-  Ürün adı dosya adından gelir; bu yüzden bu bölüm için KV şeması veya panel
-  alanı EKLEMEYİN. Hizmet kartları (`content:products`) ayrı bir şeydir ve
-  panelden yönetilmeye devam eder. Kartların gittiği Trendyol linki
-  `content:contact.marketplaceLinks.trendyol`'dur.
+- **"Ürünlerimiz" bölümünde fotoğraflar REPODA, metinler KV'DE durur**
+  (müşteri kararı, 28 Ekim 2026). Fotoğraf listesi `src/lib/shop-photos.js`'tir
+  (`npm run photos` üretir; ekle/sil/sıra yalnızca dosyalarla yapılır).
+  Ad + detay satırı `content:shop`'tadır ve panelin ÜRÜNLER sekmesinden
+  düzenlenir; ikisi `id` (dosya adının slug'ı) ile `kv-schema.mergeShop()`'ta
+  birleşir. Fotoğrafları KV'ye veya harici bir depoya taşımayın — müşteri
+  bilerek repoda istedi. Hizmet kartları (`content:products`) ayrı bir şeydir.
+- **Trendyol linki KV'de boşsa koddaki varsayılan kullanılır**
+  (`kv-schema.withMarketplaceDefaults`, hem site hem panel GET'i). Sebep: link
+  verildiğinde canlı `content:contact` seed edilmişti ve panele erişim yoktu.
+  Panelde girilen değer önceliklidir; ama panelde boşaltmak linki gizlemez —
+  gizlemek için `DEFAULTS[content:contact].marketplaceLinks.trendyol` de silinmeli.
 - Tüm buton/CTA metinleri Türkçe kalmalı (örn. "Bizimle İletişime Geç") — marka kopyası çift dilli değildir, sadece Türkçe.
 
 ## Güvenlik Kontrol Listesi (her PR öncesi)

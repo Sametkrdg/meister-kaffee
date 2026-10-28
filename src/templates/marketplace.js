@@ -3,9 +3,11 @@ import { safeUrl } from '../lib/validate.js';
 /**
  * Mağazalarımız — Trendyol / Amazon bağlantıları.
  *
- * Bağlantılar content:contact.marketplaceLinks'ten gelir; admin panelinde
- * boş bırakılan pazaryeri hiç render edilmez (kırık "#" bağlantısı olmaz).
- * Her ikisi de boşsa bölüm tamamen gizlenir.
+ * Bağlantılar content:contact.marketplaceLinks'ten gelir; boş olan pazaryeri
+ * hiç render edilmez (kırık "#" bağlantısı olmaz). Her ikisi de boşsa bölüm
+ * tamamen gizlenir. Not: KV'de boş olan link buraya gelmeden önce koddaki
+ * varsayılanla doldurulur (bkz. kv-schema.withMarketplaceDefaults) — şu an
+ * Trendyol'un varsayılanı olduğu için o buton her zaman görünür.
  */
 export function renderMarketplace({ contact }) {
   const links = contact?.marketplaceLinks || {};

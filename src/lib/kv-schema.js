@@ -8,6 +8,8 @@
  * bunları yazar, sonrasında admin panelinden düzenlenir.
  */
 
+import { SHOP_PHOTOS } from './shop-photos.js';
+
 /* ---- Anahtarlar ---------------------------------------------------------- */
 
 /** İletişim formu kayıtlarının anahtar öneki. */
@@ -18,6 +20,12 @@ export const KEYS = {
   whyUs: 'content:why-us',
   products: 'content:products',
   contact: 'content:contact',
+  /**
+   * "Ürünlerimiz" kartlarının panelden değiştirilen adı + detay satırı.
+   * Fotoğrafların kendisi KV'de değil repodadır (src/lib/shop-photos.js);
+   * bu doküman yalnızca `id` ile eşleşen metinleri taşır. Bkz. mergeShop().
+   */
+  shop: 'content:shop',
   meta: 'content:meta',
 
   /**
@@ -136,7 +144,10 @@ export const DEFAULTS = {
     // Hero'nun sağ üst teknik etiketinde gösterilir; boşsa etiket gizlenir.
     coordinates: '40.6550° N, 29.2769° E',
     marketplaceLinks: {
-      trendyol: '',
+      // KV'deki değer boşsa bu kullanılır (bkz. withMarketplaceDefaults).
+      // ty.gl paylaşım linkinin yönlendirdiği adres; paylaşanın kullanıcı
+      // kimliği ve uygulama takip parametreleri bilinçli olarak çıkarıldı.
+      trendyol: 'https://www.trendyol.com/magaza/x-m-1308291',
       amazon: '',
     },
     socialLinks: {
@@ -144,6 +155,14 @@ export const DEFAULTS = {
       linkedin: '',
     },
   },
+
+  // Etiket bilgileri müşterinin ürün görsellerinden alındı (28 Ekim 2026).
+  [KEYS.shop]: [
+    { id: 'espresso-italiano', name: 'Espresso Italiano', detail: 'Espresso · Sert İçim · Orta Kavrum · 250 g' },
+    { id: 'espresso-ethiopian-magic', name: 'Espresso Ethiopian Magic', detail: 'Espresso · Yumuşak İçim · Orta Kavrum · 250 g' },
+    { id: 'ethiopia-lekempt', name: 'Ethiopia Lekempt', detail: 'Filtre Kahve · Single Origin · Orta Kavrum · 250 g' },
+    { id: 'colombia-supremo', name: 'Colombia Supremo', detail: 'Filtre Kahve · Single Origin · Orta Kavrum · 250 g' },
+  ],
 
   [KEYS.meta]: {
     updatedAt: null,
@@ -283,18 +302,68 @@ export async function readSeoProducts(kv, ids) {
 }
 
 /**
+ * Pazaryeri linklerinin KV'de BOŞ olanlarını koddaki varsayılanla doldurur.
+ *
+ * Neden: Trendyol linki verildiğinde KV'deki `content:contact` çoktan seed
+ * edilmişti (link alanı boş) ve panele erişim yoktu; yalnızca DEFAULTS'u
+ * değiştirmek sayfaya yansımıyordu. Panelde girilen bir değer her zaman
+ * önceliklidir. Bedeli: panelde alanı boşaltmak linki gizlemez — gizlemek
+ * için DEFAULTS'taki değer de silinmelidir.
+ *
+ * Hem ana sayfa hem panel GET'i bunu kullanır; böylece panel, sitede
+ * görünen linki alanda dolu olarak gösterir.
+ */
+export function withMarketplaceDefaults(contact) {
+  const c = contact && typeof contact === 'object' ? contact : {};
+  const defaults = DEFAULTS[KEYS.contact].marketplaceLinks;
+  const links = c.marketplaceLinks && typeof c.marketplaceLinks === 'object' ? c.marketplaceLinks : {};
+
+  const merged = {};
+  Object.keys(defaults).forEach((k) => {
+    merged[k] = links[k] || defaults[k];
+  });
+  return { ...c, marketplaceLinks: { ...links, ...merged } };
+}
+
+/**
+ * Repodaki fotoğraf listesini panelde girilen metinlerle birleştirir.
+ *
+ * Kaynak sırası: `content:shop`'taki kayıt (id eşleşmesiyle) → dosya adından
+ * gelen ad. Fotoğrafı silinmiş ürünün kaydı yok sayılır; sıra her zaman
+ * fotoğraf dosya adlarının sırasıdır.
+ *
+ * @param {object[]|null} doc `content:shop` dokümanı
+ * @returns {{ id, name, detail, src, width, height }[]}
+ */
+export function mergeShop(doc) {
+  const byId = new Map(
+    (Array.isArray(doc) ? doc : []).filter((d) => d && d.id).map((d) => [d.id, d])
+  );
+
+  return SHOP_PHOTOS.map((photo) => {
+    const text = byId.get(photo.id) || {};
+    return {
+      ...photo,
+      name: text.name || photo.name,
+      detail: text.detail || '',
+    };
+  });
+}
+
+/**
  * Ana sayfanın ihtiyaç duyduğu tüm içerik dokümanlarını okur.
  *
- * KV okuma sayısı: 5 sabit + 3 bölüm SEO + görünür ürün sayısı. Bu maliyet
+ * KV okuma sayısı: 6 sabit + 3 bölüm SEO + görünür ürün sayısı. Bu maliyet
  * her ziyaretçide değil, PoP başına dakikada bir doğar: `functions/index.js`
  * HTML'i `s-maxage=60, stale-while-revalidate=600` ile servis eder.
  */
 export async function readSiteContent(kv) {
-  const [hero, whyUs, products, contact, seoHome, seoSections] = await Promise.all([
+  const [hero, whyUs, products, contact, shop, seoHome, seoSections] = await Promise.all([
     readDoc(kv, KEYS.hero),
     readDoc(kv, KEYS.whyUs),
     readDoc(kv, KEYS.products),
     readDoc(kv, KEYS.contact),
+    readDoc(kv, KEYS.shop),
     readDoc(kv, KEYS.seo('home'), SEO_DEFAULTS.home),
     readSeoSections(kv),
   ]);
@@ -308,7 +377,16 @@ export async function readSiteContent(kv) {
     visible.map((p) => p && p.id)
   );
 
-  return { hero, whyUs, products: visible, contact, seo: seoHome, seoSections, seoProducts };
+  return {
+    hero,
+    whyUs,
+    products: visible,
+    contact: withMarketplaceDefaults(contact),
+    shop: mergeShop(shop),
+    seo: seoHome,
+    seoSections,
+    seoProducts,
+  };
 }
 
 /* ---- İletişim formu kayıtları -------------------------------------------- */
