@@ -1068,6 +1068,14 @@ textarea.form__field {
 @media (max-width: 560px) {
   .grid-overlay { display: none; }
 
+  /* Ürünler telefonda da ikili (müşteri isteği); auto-fit 240px'lik alt
+     sınırla tek sütuna düşüyordu. Dar kartta metin küçülür, Trendyol
+     etiketi tek satırda kalsın diye harf aralığı daralır. */
+  .shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4) var(--sp-2); }
+  .shop-card { gap: 10px; }
+  .shop-card__name { font-size: 16px; }
+  .shop-card__detail { margin-top: -4px; font-size: 12px; }
+  .shop-card__cta { font-size: 10px; letter-spacing: 0.04em; }
 
   .form__row { grid-template-columns: 1fr; }
   .form__field--split { border-right: 0; }
