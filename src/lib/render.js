@@ -4,6 +4,7 @@
  */
 
 import { renderLayout } from '../templates/layout.js';
+import { renderShowcase } from '../templates/showcase.js';
 import { renderNav } from '../templates/nav.js';
 import { renderHero } from '../templates/hero.js';
 import { renderMarquee } from '../templates/marquee.js';
@@ -13,6 +14,7 @@ import { renderShop } from '../templates/shop.js';
 import { renderMarketplace } from '../templates/marketplace.js';
 import { renderContact } from '../templates/contact.js';
 import { renderFooter } from '../templates/footer.js';
+import { SHOWCASE_PHOTOS } from './showcase-photos.js';
 
 /**
  * @param {object} content kv-schema.readSiteContent() çıktısı
@@ -23,14 +25,17 @@ import { renderFooter } from '../templates/footer.js';
 export function renderHomePage(content, origin, assetVersion) {
   const { hero, whyUs, products, contact, shop, seo, seoSections, seoProducts } = content;
 
+  // Sıra müşteri kararıdır (28 Ekim 2026): vitrin → menü → Ürünlerimiz →
+  // "Zanaatkâr titizliğiyle kavrulmuş" (hero) → kalan bölümler.
   const body = [
+    renderShowcase({ photos: SHOWCASE_PHOTOS, shop, contact, assetVersion }),
     renderNav({ hero, assetVersion, hasShop: shop.length > 0 }),
-    '<main class="page">',
+    '<main class="page" id="icerik">',
+    renderShop({ items: shop, contact, assetVersion }),
     renderHero({ hero, contact }),
     renderMarquee({ whyUs }),
     renderWhyUs({ whyUs }),
     renderServicesProducts({ products }),
-    renderShop({ items: shop, contact, assetVersion }),
     renderMarketplace({ contact }),
     renderContact({ contact }),
     '</main>',

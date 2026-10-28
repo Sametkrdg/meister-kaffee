@@ -2,7 +2,8 @@ import { escapeHtml, safeUrl } from '../lib/validate.js';
 
 /**
  * Hero — sola hizalı dev display tipografi, teknik köşe etiketleri ve
- * scroll'a bağlı parallax/eğim efekti.
+ * scroll'a bağlı parallax/eğim efekti. Sayfanın en üstünde değil,
+ * "Ürünlerimiz"in altında durur (bkz. lib/render.js).
  *
  * Başlık biçimi (content:hero.headline):
  *   satırlar "|" ile ayrılır, vurgulanacak satır *yıldız* içine alınır.
@@ -40,7 +41,7 @@ export function renderHero({ hero, contact }) {
     .join('<br>');
 
   return `
-  <section class="hero" id="top">
+  <section class="hero">
     ${marker ? `<p class="hero__marker hero__marker--right">${marker}</p>` : ''}
 
     ${eyebrow ? `<p class="hero__eyebrow"><span class="dot" aria-hidden="true"></span>${eyebrow}</p>` : ''}

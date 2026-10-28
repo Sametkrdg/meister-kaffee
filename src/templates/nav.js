@@ -2,18 +2,23 @@ import { escapeHtml } from '../lib/validate.js';
 import { asset } from '../lib/assets.js';
 
 /**
- * Sticky üst menü. Bağlantılar monospace ile dizilir.
+ * Sticky menü. Vitrinin altında durur; sayfa kaydırılıp üst kenara
+ * ulaşınca orada sabitlenir. Bağlantılar monospace ile dizilir.
+ *
+ * Logo bağlantısı "#top"a gider: o id'de bir öğe yoktur, tarayıcı (ve
+ * main.js) sayfanın en üstüne, yani vitrine kaydırır.
  *
  * Mobilde bağlantılar açılır panele döner; panelin açılıp kapanmasını
  * public/assets/main.js yönetir (progressive enhancement — JS yoksa
  * bağlantılar yine de sayfada mevcuttur).
  */
 
+/** Sayfadaki bölüm sırasıyla aynı (bkz. lib/render.js). */
 const LINKS = [
-  { label: 'NEDEN BİZ', href: '#neden-biz' },
-  { label: 'HİZMETLER', href: '#hizmetler' },
   // Yalnızca "Ürünlerimiz" bölümü render ediliyorsa (fotoğraf varsa) gösterilir
   { label: 'ÜRÜNLER', href: '#urunler', shopOnly: true },
+  { label: 'NEDEN BİZ', href: '#neden-biz' },
+  { label: 'HİZMETLER', href: '#hizmetler' },
   { label: 'İLETİŞİM', href: '#iletisim' },
 ];
 

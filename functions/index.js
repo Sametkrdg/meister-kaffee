@@ -7,7 +7,7 @@
  * botları her zaman dolu HTML alır (client-side hydration yok).
  */
 
-import { readSiteContent, DEFAULTS, KEYS, SEO_DEFAULTS } from '../src/lib/kv-schema.js';
+import { readSiteContent, mergeShop, DEFAULTS, KEYS, SEO_DEFAULTS } from '../src/lib/kv-schema.js';
 import { renderHomePage } from '../src/lib/render.js';
 import { resolveAssetVersion } from '../src/lib/assets.js';
 import { headFromGet } from '../src/lib/head.js';
@@ -38,6 +38,7 @@ export async function onRequestGet(context) {
       whyUs: DEFAULTS[KEYS.whyUs],
       products: DEFAULTS[KEYS.products],
       contact: DEFAULTS[KEYS.contact],
+      shop: mergeShop(null),
       seo: SEO_DEFAULTS.home,
     };
 

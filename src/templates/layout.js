@@ -43,7 +43,7 @@ export function renderLayout({ seo, contact, products, origin, body, assetVersio
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
-  <a class="skip-link" href="#neden-biz">İçeriğe geç</a>
+  <a class="skip-link" href="#icerik">İçeriğe geç</a>
 ${renderGridOverlay()}
 ${body}
   <script src="${v('/assets/main.js')}" defer></script>
