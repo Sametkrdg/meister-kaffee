@@ -10,6 +10,7 @@
 import { readSiteContent, DEFAULTS, KEYS, SEO_DEFAULTS } from '../src/lib/kv-schema.js';
 import { renderHomePage } from '../src/lib/render.js';
 import { resolveAssetVersion } from '../src/lib/assets.js';
+import { headFromGet } from '../src/lib/head.js';
 
 const HTML_HEADERS = {
   'Content-Type': 'text/html; charset=utf-8',
@@ -46,3 +47,5 @@ export async function onRequestGet(context) {
     });
   }
 }
+
+export const onRequestHead = headFromGet(onRequestGet);

@@ -10,6 +10,7 @@
 
 import { KEYS, readDoc } from '../src/lib/kv-schema.js';
 import { renderSitemap } from '../src/lib/seo.js';
+import { headFromGet } from '../src/lib/head.js';
 
 export async function onRequestGet(context) {
   const { env, request } = context;
@@ -24,3 +25,5 @@ export async function onRequestGet(context) {
     },
   });
 }
+
+export const onRequestHead = headFromGet(onRequestGet);

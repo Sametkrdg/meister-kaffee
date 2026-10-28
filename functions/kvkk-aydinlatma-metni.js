@@ -8,6 +8,7 @@
 
 import { renderKvkkPage } from '../src/templates/legal.js';
 import { resolveAssetVersion } from '../src/lib/assets.js';
+import { headFromGet } from '../src/lib/head.js';
 
 export async function onRequestGet({ env }) {
   return new Response(renderKvkkPage(resolveAssetVersion(env)), {
@@ -17,3 +18,5 @@ export async function onRequestGet({ env }) {
     },
   });
 }
+
+export const onRequestHead = headFromGet(onRequestGet);

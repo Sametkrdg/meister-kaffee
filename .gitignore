@@ -13,5 +13,8 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Claude Code yerel izinleri (kisiye ozel)
+.claude/settings.local.json
+
 # Kaynak fotograf arsivi (27 MB, yayina cikmaz - optimize kopyalar public/images altinda)
 photos/

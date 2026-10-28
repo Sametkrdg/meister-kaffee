@@ -42,6 +42,12 @@ npm run seed
 Script sonunda KV'den geri okuma doğrulaması yapar; "doğrulandı" satırlarını
 görmeden kurulumu tamamlanmış sayma.
 
+**Dikkat:** `npm run seed` içerik ve SEO dokümanlarını da varsayılana döndürür —
+panelden yapılmış tüm düzenlemeler silinir. Yalnızca admin şifresini sıfırlamak
+için `npm run seed -- --sadece-sifre` kullan; o zaman sadece `admin:credentials`
+yazılır. Komutu, wrangler'ın sitenin bağlı olduğu Cloudflare hesabında oturum
+açtığından emin olarak çalıştır (`npx wrangler whoami`).
+
 ## Geliştirme
 
 ```bash

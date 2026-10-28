@@ -98,7 +98,7 @@ meister-kaffee-roesterei/
 
 | Key | Shape |
 |---|---|
-| `content:hero` | `{ eyebrow, headline, subheadline, ctaLabel, ctaHref }` — `headline` satırları `\|` ile ayrılır, `*yıldız*` içindeki satır bronz vurgulanır (tasarım v2). `logoUrl` v2'de kaldırıldı: logomark artık nav'da sabittir. |
+| `content:hero` | `{ eyebrow, headline, subheadline, ctaLabel, ctaHref }` — `headline` satırları `\|` ile ayrılır, `*yıldız*` içindeki satır `--accent-mute` grisiyle vurgulanır (tasarım v2'de bronzdu; v3'te palet nötrleşti). `logoUrl` v2'de kaldırıldı: logomark artık nav'da sabittir. |
 | `content:why-us` | `[ { icon, title, description } ]` |
 | `content:products` | `[ { id, name, category, description, imageUrl, audience[], order } ]` |
 | `content:contact` | `{ email, phone, address, coordinates, marketplaceLinks: { trendyol, amazon }, socialLinks: {...} }` — `coordinates` hero'nun sağ üst teknik etiketinde gösterilir (tasarım v2), boşsa etiket gizlenir. |
@@ -155,7 +155,7 @@ meister-kaffee-roesterei/
 5. Build the **Services & Products** template: reads `content:products`, groups/filters by audience tag (cafés, hotels, restaurants), presents roasting-service offerings alongside bean SKUs.
 6. Build the **Contact** section: form fields exactly `Name, Company Name, Email, Phone, Message` posting to `/api/contact`; clickable `tel:` / `mailto:` links sourced from `content:contact`; **Trendyol** and **Amazon** buttons sourced from `content:contact.marketplaceLinks`.
 7. Implement `functions/index.js`: fetch all `content:*` and `seo:home` (+ visible `seo:product:{id}`) documents from `CONTENT_KV` in parallel, render the full HTML via `render.js`, set `Cache-Control` (short TTL + `stale-while-revalidate`).
-8. Implement `functions/api/contact.js`: validate payload via `validate.js`, append to `content:submissions`, return a JSON success/error the client script surfaces inline.
+8. Implement `functions/api/contact.js`: validate payload via `validate.js`, write the submission to its own `content:submission:{receivedAt}-{id}` key (see §3; originally a single `content:submissions` array), return a JSON success/error the client script surfaces inline.
 9. Mobile-responsive pass across the Swiss grid breakpoints; run Lighthouse and target Performance/Accessibility/SEO/Best-Practices ≥ 95.
 10. Progressive-enhancement JS (`main.js`): mobile nav toggle, smooth-scroll to `#contact`, form submit/error/success states, scroll-reveal transitions gated behind `prefers-reduced-motion`.
 
@@ -217,6 +217,6 @@ meister-kaffee-roesterei/
 
 ## 7. Post-Launch Enhancements (optional, still zero-budget-compatible)
 
-- **Cloudflare Turnstile** on the contact form for spam protection (free tier).
-- A free-tier transactional email API to notify the team on new `content:submissions` entries, replacing manual KV log checks.
+- ~~**Cloudflare Turnstile** on the contact form for spam protection (free tier).~~ **Yapıldı:** `src/lib/turnstile.js` + `functions/api/contact.js`, gizli anahtar `TURNSTILE_SECRET_KEY` ortam değişkeninde.
+- A free-tier transactional email API to notify the team on new `content:submission:*` entries, replacing manual KV log checks.
 - **Cloudflare Images** as a paid upgrade path only if URL-based product imagery becomes a bottleneck — noted as future, not part of the zero-budget baseline.

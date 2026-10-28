@@ -14,6 +14,9 @@
  *
  * --local  : wrangler'ın yerel (miniflare) KV deposuna yazar, `wrangler pages dev` için
  * (varsayılan) : uzak Cloudflare KV namespace'ine yazar
+ * --sadece-sifre : YALNIZCA admin:credentials yazılır (şifre sıfırlama).
+ *   Bu bayrak olmadan içerik + SEO dokümanları da varsayılana döner ve
+ *   panelden yapılmış tüm düzenlemeler silinir.
  *
  * Şifre asla diske veya KV'ye düz metin olarak yazılmaz; yalnızca hash + salt.
  */
@@ -26,6 +29,7 @@ import { hashPassword } from '../src/lib/auth.js';
 import { KEYS, DEFAULTS, SEO_DEFAULTS, SEO_SECTIONS } from '../src/lib/kv-schema.js';
 
 const isLocal = process.argv.includes('--local');
+const credentialsOnly = process.argv.includes('--sadece-sifre');
 const email = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
 const password = process.env.ADMIN_PASSWORD || '';
 const pepper = process.env.PASSWORD_PEPPER || '';
@@ -90,21 +94,25 @@ console.log(`\n  Hedef: ${isLocal ? 'YEREL (miniflare)' : 'UZAK (Cloudflare KV)'
 const hashed = await hashPassword(password, pepper);
 kvPut('ADMIN_KV', KEYS.credentials, { email, ...hashed });
 
-// 2) İçerik dokümanları
-kvPut('CONTENT_KV', KEYS.hero, DEFAULTS[KEYS.hero]);
-kvPut('CONTENT_KV', KEYS.whyUs, DEFAULTS[KEYS.whyUs]);
-kvPut('CONTENT_KV', KEYS.products, DEFAULTS[KEYS.products]);
-kvPut('CONTENT_KV', KEYS.contact, DEFAULTS[KEYS.contact]);
-// İletişim formu kayıtları için başlangıç anahtarı YOKTUR: her kayıt kendi
-// `content:submission:<tarih>-<id>` anahtarına yazılır (bkz. kv-schema.js).
-kvPut('CONTENT_KV', KEYS.meta, {
-  updatedAt: new Date().toISOString(),
-  updatedBy: 'seed-kv.mjs',
-});
+if (credentialsOnly) {
+  console.log('\n  --sadece-sifre: içerik ve SEO dokümanlarına dokunulmadı.');
+} else {
+  // 2) İçerik dokümanları
+  kvPut('CONTENT_KV', KEYS.hero, DEFAULTS[KEYS.hero]);
+  kvPut('CONTENT_KV', KEYS.whyUs, DEFAULTS[KEYS.whyUs]);
+  kvPut('CONTENT_KV', KEYS.products, DEFAULTS[KEYS.products]);
+  kvPut('CONTENT_KV', KEYS.contact, DEFAULTS[KEYS.contact]);
+  // İletişim formu kayıtları için başlangıç anahtarı YOKTUR: her kayıt kendi
+  // `content:submission:<tarih>-<id>` anahtarına yazılır (bkz. kv-schema.js).
+  kvPut('CONTENT_KV', KEYS.meta, {
+    updatedAt: new Date().toISOString(),
+    updatedBy: 'seed-kv.mjs',
+  });
 
-// 3) SEO dokümanları
-for (const section of SEO_SECTIONS) {
-  kvPut('CONTENT_KV', KEYS.seo(section), SEO_DEFAULTS[section]);
+  // 3) SEO dokümanları
+  for (const section of SEO_SECTIONS) {
+    kvPut('CONTENT_KV', KEYS.seo(section), SEO_DEFAULTS[section]);
+  }
 }
 
 // 4) Geri okuma doğrulaması
@@ -143,7 +151,7 @@ function assertParsable(binding, key) {
 
 console.log('\n  Doğrulanıyor…');
 assertParsable('ADMIN_KV', KEYS.credentials);
-assertParsable('CONTENT_KV', KEYS.hero);
+if (!credentialsOnly) assertParsable('CONTENT_KV', KEYS.hero);
 
 console.log(`\n  Tamamlandı. Admin girişi: ${email}`);
 console.log('  Şifreyi ilk girişten sonra panelden değiştirmeyi unutma.\n');

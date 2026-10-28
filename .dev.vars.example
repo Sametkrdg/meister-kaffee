@@ -18,3 +18,9 @@ SESSION_SECRET="buraya-üretilen-rastgele-anahtar"
 # değiştirilirse tüm mevcut şifreler geçersiz olur (seed yeniden çalıştırılmalı).
 # Üretmek için: node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 PASSWORD_PEPPER="buraya-üretilen-rastgele-pepper"
+
+# Cloudflare Turnstile (iletişim formu bot koruması) GİZLİ anahtarı.
+# Cloudflare panel > Turnstile > site > Settings altında bulunur.
+# Sitekey herkese açıktır ve src/lib/turnstile.js içindedir; bu değer DEĞİL.
+# Tanımlı değilse iletişim formu her gönderimi reddeder.
+TURNSTILE_SECRET_KEY="buraya-turnstile-gizli-anahtari"
