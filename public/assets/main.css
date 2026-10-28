@@ -525,9 +525,11 @@ h1, h2, h3 { font-family: var(--font-display); font-weight: 600; margin: 0; }
 
 /* ---- Ürünlerimiz -------------------------------------------------------- */
 
+/* auto-fit: boş sütun açılmaz, kartlar satırı doldurur. auto-fill geniş
+   ekranda 5-6 sütun açıp 4 ürünü sola sıkıştırıyordu. */
 .shop-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: var(--sp-5) var(--sp-3);
 }
 .shop-card {
